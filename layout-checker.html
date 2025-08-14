@@ -113,6 +113,12 @@
     height: 18px;
     fill: currentColor;
   }
+  
+  /* Loading animation */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 </style>
 </head>
 <body>
@@ -327,38 +333,85 @@
       downloadBtn.disabled = true;
       downloadBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px; animation: spin 1s linear infinite;"><path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/></svg>Loading...';
       
-      // Fetch the HTML content
-      const response = await fetch(url, {
-        mode: 'cors',
-        headers: {
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-        }
-      });
+      // List of CORS proxy servers to try
+      const corsProxies = [
+        'https://api.allorigins.win/get?url=',
+        'https://cors-anywhere.herokuapp.com/',
+        'https://thingproxy.freeboard.io/fetch/',
+        'https://api.codetabs.com/v1/proxy?quest='
+      ];
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      let htmlContent = null;
+      let lastError = null;
+      
+      // Try direct fetch first
+      try {
+        const response = await fetch(url, {
+          mode: 'cors',
+          headers: {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+          }
+        });
+        
+        if (response.ok) {
+          htmlContent = await response.text();
+        }
+      } catch (directError) {
+        console.log('Direct fetch failed, trying proxies...');
       }
       
-      const htmlContent = await response.text();
+      // If direct fetch failed, try CORS proxies
+      if (!htmlContent) {
+        for (const proxy of corsProxies) {
+          try {
+            let proxyUrl;
+            let response;
+            
+            if (proxy.includes('allorigins')) {
+              proxyUrl = proxy + encodeURIComponent(url);
+              response = await fetch(proxyUrl);
+              if (response.ok) {
+                const data = await response.json();
+                htmlContent = data.contents;
+                break;
+              }
+            } else {
+              proxyUrl = proxy + encodeURIComponent(url);
+              response = await fetch(proxyUrl);
+              if (response.ok) {
+                htmlContent = await response.text();
+                break;
+              }
+            }
+          } catch (proxyError) {
+            lastError = proxyError;
+            console.log(`Proxy ${proxy} failed:`, proxyError);
+            continue;
+          }
+        }
+      }
       
-      // Set the content in CodeMirror editor
-      editor.setValue(htmlContent);
-      
-      // Show success message
-      alert('HTML source code successfully downloaded and pasted!');
+      if (htmlContent) {
+        // Set the content in CodeMirror editor
+        editor.setValue(htmlContent);
+        
+        // Show success message
+        alert('HTML source code successfully downloaded and pasted!');
+      } else {
+        throw new Error('All proxy attempts failed');
+      }
       
     } catch (error) {
       console.error('Error fetching HTML:', error);
       
-      // Try alternative method using a proxy or JSONP-like approach
+      // Fallback: Open URL in new tab with instructions
       try {
-        // Open the URL in a new tab and use postMessage for communication
-        const newWindow = window.open(url, '_blank');
+        window.open(url, '_blank');
         
         // Store the URL for potential manual copy-paste
         localStorage.setItem('layoutCheckerURL', url);
         
-        alert('Due to CORS restrictions, the page has been opened in a new tab. Please copy the source code manually and paste it here, or use the browser developer tools to copy the HTML.');
+        alert('Unable to automatically fetch the HTML due to CORS restrictions. The page has been opened in a new tab.\n\nTo get the source code:\n1. Right-click on the page\n2. Select "View Page Source" or press Ctrl+U\n3. Copy all the HTML code\n4. Paste it into the HTML content editor here');
         
       } catch (fallbackError) {
         alert('Error: Unable to fetch the HTML content. Please copy the source code manually from the URL and paste it here.');
