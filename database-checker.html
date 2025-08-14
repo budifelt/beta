@@ -765,6 +765,59 @@ const app = new DatabaseChecker();
 window.addEventListener('beforeunload', () => {
   app.virtualScroller.destroy();
 });
+
+// State persistence - simple approach
+function saveState() {
+  const state = {
+    hasLoadedFile: app.currentLines.length > 0,
+    resultsHTML: document.getElementById('krhredResults').innerHTML,
+    detailsHTML: document.getElementById('krhredDetails').innerHTML
+  };
+  localStorage.setItem('databaseChecker_state', JSON.stringify(state));
+}
+
+function loadState() {
+  const saved = localStorage.getItem('databaseChecker_state');
+  if (saved) {
+    try {
+      const state = JSON.parse(saved);
+      
+      // Restore results if available
+      if (state.resultsHTML) {
+        document.getElementById('krhredResults').innerHTML = state.resultsHTML;
+      }
+      if (state.detailsHTML) {
+        document.getElementById('krhredDetails').innerHTML = state.detailsHTML;
+      }
+      
+      // Show message if file was loaded before
+      if (state.hasLoadedFile) {
+        const folderBtn = document.getElementById('folderOpenBtn');
+        folderBtn.textContent = 'Reopen Folder';
+        folderBtn.style.backgroundColor = '#ff6b6b';
+      }
+    } catch (e) {
+      console.error('Error loading state:', e);
+    }
+  }
+}
+
+// Load state when page loads
+window.addEventListener('load', loadState);
+
+// Save state before leaving page
+window.addEventListener('beforeunload', () => {
+  saveState();
+  app.virtualScroller.destroy();
+});
+
+// Add back button
+const backBtn = document.createElement('button');
+backBtn.innerHTML = '← Index';
+backBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:999;background:#667eea;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;';
+backBtn.onclick = () => { saveState(); window.location.href = 'index.html'; };
+document.body.appendChild(backBtn);
+
 </script>
 </body>
 </html>
