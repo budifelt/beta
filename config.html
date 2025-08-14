@@ -763,6 +763,7 @@ updateSubjectBtn.addEventListener('click', () => {
   folderOpenBtn.addEventListener('click', async () => {
     try {
       const dirHandle = await window.showDirectoryPicker();
+      currentDirHandle = dirHandle; // Store the directory handle
       fileList.innerHTML = '';
 
       async function buildTree(dirHandle, parentUl) {
@@ -880,6 +881,7 @@ updateSubjectBtn.addEventListener('click', () => {
       }
 
       await buildTree(dirHandle, fileList);
+      saveState(); // Save state after opening folder
     } catch (err) {
       alert('Error opening folder: ' + err.message);
     }
@@ -915,12 +917,16 @@ updateSubjectBtn.addEventListener('click', () => {
     return formatted.trim();
   }
   // State persistence - simple approach
+  let currentDirHandle = null;
+
   function saveState() {
     const state = {
       campaignId: campaignIdInput.value,
       subject: subjectInput.value,
       link: linkInput.value,
-      xmlContent: editor.textContent
+      xmlContent: editor.textContent,
+      folderOpened: currentDirHandle !== null,
+      fileListHTML: document.getElementById('fileList').innerHTML
     };
     localStorage.setItem('config_state', JSON.stringify(state));
   }
@@ -928,13 +934,25 @@ updateSubjectBtn.addEventListener('click', () => {
   function loadState() {
     const saved = localStorage.getItem('config_state');
     if (saved) {
-      const state = JSON.parse(saved);
-      campaignIdInput.value = state.campaignId || '';
-      subjectInput.value = state.subject || '';
-      linkInput.value = state.link || '';
-      if (state.xmlContent) {
-        editor.textContent = state.xmlContent;
-        loadXmlFromText(state.xmlContent);
+      try {
+        const state = JSON.parse(saved);
+        campaignIdInput.value = state.campaignId || '';
+        subjectInput.value = state.subject || '';
+        linkInput.value = state.link || '';
+        if (state.xmlContent) {
+          editor.textContent = state.xmlContent;
+          loadXmlFromText(state.xmlContent);
+        }
+        // Restore file list if it was opened before
+        if (state.folderOpened && state.fileListHTML) {
+          document.getElementById('fileList').innerHTML = state.fileListHTML;
+          // Show message that folder needs to be reopened
+          const folderBtn = document.getElementById('folderOpenBtn');
+          folderBtn.textContent = 'Reopen Folder';
+          folderBtn.style.backgroundColor = '#ff6b6b';
+        }
+      } catch (e) {
+        console.error('Error loading state:', e);
       }
     }
   }
