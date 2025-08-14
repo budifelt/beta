@@ -133,37 +133,22 @@
 </div>
 
 <label for="krhredInput" style="margin-top: 15px;">Paste krhred values here:</label>
-<textarea id="krhredInput" placeholder="Paste krhred values in format:
-krhred_31:
-value
-krhred_43:
-value" style="width: 100%; height: 150px; padding: 10px; font-family: monospace;"></textarea>
-<button id="applyKrhredBtn" style="margin-top: 10px; background-color: #28a745;">Apply krhred values</button>
-
-<!-- CodeMirror CSS and JS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
-
-<script>
-  // Initialize CodeMirror editor for htmlInput textarea
-  const textarea = document.getElementById('htmlInput');
-  const editor = CodeMirror.fromTextArea(textarea, {
-    mode: 'htmlmixed',
-    theme: 'material',
-    lineNumbers: true,
-    lineWrapping: true,
-    autoCloseTags: true,
-    matchBrackets: true,
-  });
-  </script>
-
-<!-- Added container for krhred_unit textboxes -->
-  <div id="krhredUnitsContainer" style="display: grid; grid-template-columns: repeat(9, auto); grid-template-rows: repeat(5, auto); grid-gap: 2px 2px; margin: 15px 0;">
+<div style="display: flex; gap: 15px; align-items: flex-start;">
+  <div style="flex: 0 0 20%;">
+    <textarea id="krhredInput" placeholder="Paste value from brickstreet" style="width: 100%; height: 172px; padding: 10px; font-family: monospace;"></textarea>
+    <div style="display: flex; gap: 8px; margin-top: 10px;">
+      <button id="applyKrhredBtn" style="background-color: #28a745;">Apply krhred values</button>
+      <button id="checkLayoutBtn">Check Layout</button>
+      <button id="addKrhredBtn" style="background-color: #4a90e2; color: white; border: none; padding: 10px 18px; font-size: 15px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Added container for krhred_unit textboxes -->
+  <div id="krhredUnitsContainer" style="display: grid; grid-template-columns: repeat(9, auto); grid-template-rows: repeat(5, auto); grid-gap: 2px 2px; flex: 1; margin-top: 0;">
   <!-- 10 textboxes with labels -->
   <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 1;">
     <input type="text" id="krhred_unit_30" name="krhred_unit_30" placeholder="krhred_unit_30" />
@@ -193,15 +178,28 @@ value" style="width: 100%; height: 150px; padding: 10px; font-family: monospace;
     <input type="text" id="krhred_unit_38" name="krhred_unit_38" placeholder="krhred_unit_38" />
   </div>
 </div>
-<br />
-<div style="display: flex; gap: 12px; margin-top: 10px;">
-  <button id="checkLayoutBtn">Check Layout</button>
-  <button id="addKrhredBtn" style="background-color: #4a90e2; color: white; border: none; padding: 10px 18px; font-size: 15px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-    </svg>
-  </button>
-</div>
+
+<!-- CodeMirror CSS and JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+
+<script>
+  // Initialize CodeMirror editor for htmlInput textarea
+  const textarea = document.getElementById('htmlInput');
+  const editor = CodeMirror.fromTextArea(textarea, {
+    mode: 'htmlmixed',
+    theme: 'material',
+    lineNumbers: true,
+    lineWrapping: true,
+    autoCloseTags: true,
+    matchBrackets: true,
+  });
+</script>
 <script>
   const htmlInput = document.getElementById('htmlInput');
   const checkLayoutBtn = document.getElementById('checkLayoutBtn');
@@ -316,16 +314,60 @@ value" style="width: 100%; height: 150px; padding: 10px; font-family: monospace;
     }
   });
 
-  // Simple functionality: Open URL in new tab
-  downloadBtn.addEventListener('click', () => {
+  // Download and auto-paste HTML source code
+  downloadBtn.addEventListener('click', async () => {
     const url = originalUrlInput.value.trim();
     if (!url) {
       alert('Please enter a URL first.');
       return;
     }
 
-    // Simply open the URL in a new tab
-    window.open(url, '_blank');
+    try {
+      // Show loading state
+      downloadBtn.disabled = true;
+      downloadBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px; animation: spin 1s linear infinite;"><path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/></svg>Loading...';
+      
+      // Fetch the HTML content
+      const response = await fetch(url, {
+        mode: 'cors',
+        headers: {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const htmlContent = await response.text();
+      
+      // Set the content in CodeMirror editor
+      editor.setValue(htmlContent);
+      
+      // Show success message
+      alert('HTML source code successfully downloaded and pasted!');
+      
+    } catch (error) {
+      console.error('Error fetching HTML:', error);
+      
+      // Try alternative method using a proxy or JSONP-like approach
+      try {
+        // Open the URL in a new tab and use postMessage for communication
+        const newWindow = window.open(url, '_blank');
+        
+        // Store the URL for potential manual copy-paste
+        localStorage.setItem('layoutCheckerURL', url);
+        
+        alert('Due to CORS restrictions, the page has been opened in a new tab. Please copy the source code manually and paste it here, or use the browser developer tools to copy the HTML.');
+        
+      } catch (fallbackError) {
+        alert('Error: Unable to fetch the HTML content. Please copy the source code manually from the URL and paste it here.');
+      }
+    } finally {
+      // Reset button state
+      downloadBtn.disabled = false;
+      downloadBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Download';
+    }
   });
 
   // Apply krhred values functionality
