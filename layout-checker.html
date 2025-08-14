@@ -483,6 +483,81 @@
       alert('Source code automatically pasted from previous page!');
     }
   });
+  // State persistence - simple approach
+  function saveState() {
+    const state = {
+      htmlContent: editor.getValue(),
+      originalUrl: document.getElementById('originalUrlInput').value,
+      krhredValues: {}
+    };
+    
+    // Save all krhred input values
+    const krhredInputs = document.querySelectorAll('input[id^="krhred_unit_"]');
+    krhredInputs.forEach(input => {
+      state.krhredValues[input.id] = input.value;
+    });
+    
+    localStorage.setItem('layoutChecker_state', JSON.stringify(state));
+  }
+
+  function loadState() {
+    const saved = localStorage.getItem('layoutChecker_state');
+    if (saved) {
+      try {
+        const state = JSON.parse(saved);
+        
+        // Restore HTML content
+        if (state.htmlContent) {
+          editor.setValue(state.htmlContent);
+        }
+        
+        // Restore original URL
+        if (state.originalUrl) {
+          document.getElementById('originalUrlInput').value = state.originalUrl;
+          document.getElementById('downloadBtn').style.display = 'flex';
+        }
+        
+        // Restore krhred values
+        if (state.krhredValues) {
+          Object.keys(state.krhredValues).forEach(inputId => {
+            const input = document.getElementById(inputId);
+            if (input) {
+              input.value = state.krhredValues[inputId];
+              // Trigger input event to update background color
+              input.dispatchEvent(new Event('input'));
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Error loading state:', e);
+      }
+    }
+  }
+
+  // Auto-save on input changes
+  editor.on('change', saveState);
+  document.getElementById('originalUrlInput').addEventListener('input', saveState);
+  document.getElementById('krhredInput').addEventListener('input', saveState);
+
+  // Auto-save for existing krhred inputs
+  const existingKrhredInputs = document.querySelectorAll('input[id^="krhred_unit_"]');
+  existingKrhredInputs.forEach(input => {
+    input.addEventListener('input', saveState);
+  });
+
+  // Load state when page loads
+  window.addEventListener('load', loadState);
+
+  // Save state before leaving page
+  window.addEventListener('beforeunload', saveState);
+
+  // Add back button
+  const backBtn = document.createElement('button');
+  backBtn.innerHTML = '← Index';
+  backBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:999;background:#667eea;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;';
+  backBtn.onclick = () => { saveState(); window.location.href = 'index.html'; };
+  document.body.appendChild(backBtn);
+
 </script>
 </body>
 </html>
