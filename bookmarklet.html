@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Helper Bookmarklet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .bookmarklet {
+            background: #007bff;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            font-weight: bold;
+            cursor: move;
+        }
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Download Helper Bookmarklet</h1>
+        
+        <div class="instructions">
+            <h3>Cara Menggunakan:</h3>
+            <ol>
+                <li><strong>Drag</strong> tombol bookmarklet di bawah ini ke <strong>bookmark bar</strong> browser Anda</li>
+                <li>Buka halaman yang ingin Anda download</li>
+                <li>Klik bookmarklet untuk menyalin <strong>source asli halaman</strong> ke clipboard</li>
+            </ol>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="javascript:(function(){
+                fetch(location.href)
+                .then(res => res.text())
+                .then(source => {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(source)
+                            .then(() => alert('✅ Source asli halaman berhasil disalin ke clipboard!'))
+                            .catch(() => fallbackCopy(source));
+                    } else {
+                        fallbackCopy(source);
+                    }
+
+                    function fallbackCopy(text){
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.style.position = 'fixed';
+                        ta.style.left = '-9999px';
+                        document.body.appendChild(ta);
+                        ta.focus();
+                        ta.select();
+                        try {
+                            document.execCommand('copy');
+                            alert('✅ Source asli halaman berhasil disalin ke clipboard!');
+                        } catch (err) {
+                            console.error('Gagal menyalin:', err);
+                            prompt('Copy manual:', text);
+                        }
+                        document.body.removeChild(ta);
+                    }
+                })
+                .catch(err => alert('❌ Gagal mengambil source: ' + err));
+            })();" class="bookmarklet">
+                📋 Copy Page Source
+            </a>
+        </div>
+
+        <div class="instructions">
+            <h3>Atau Gunakan Script Manual:</h3>
+            <p>Salin dan jalankan script di bawah ini di console browser (F12 → Console):</p>
+            <textarea readonly>
+// Script untuk menyalin source asli halaman
+(function(){
+    fetch(location.href)
+    .then(res => res.text())
+    .then(source => {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(source)
+                .then(() => console.log('✅ Source asli halaman berhasil disalin ke clipboard!'))
+                .catch(() => fallbackCopy(source));
+        } else {
+            fallbackCopy(source);
+        }
+
+        function fallbackCopy(text){
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                console.log('✅ Source asli halaman berhasil disalin ke clipboard!');
+            } catch(err) {
+                console.error('Gagal menyalin:', err);
+                prompt('Copy manual:', text);
+            }
+            document.body.removeChild(ta);
+        }
+    })
+    .catch(err => console.error('❌ Gagal mengambil source:', err));
+})();
+            </textarea>
+        </div>
+
+        <div class="instructions">
+            <h3>Shortcut Keyboard:</h3>
+            <p><strong>Ctrl+U</strong> → Lihat source code</p>
+            <p><strong>Ctrl+A</strong> → Select all</p>
+            <p><strong>Ctrl+C</strong> → Copy</p>
+        </div>
+    </div>
+</body>
+</html>

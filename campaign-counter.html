@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latest Campaign ID - Instant Load</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #fff;
+      flex-direction: column;
+    }
+    
+    .edit-icon {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #fff;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: transform 0.2s ease;
+    }
+
+    .edit-icon:hover {
+      transform: scale(1.2);
+    }
+
+    .counter-container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .counter-value {
+      font-size: 6rem;
+      font-weight: bold;
+      margin: 20px 0;
+      transition: all 0.3s ease;
+    }
+
+    .counter-value.loading {
+      opacity: 0.6;
+      transform: scale(0.95);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .buttons button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .buttons button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .buttons button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .history-container {
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 20px;
+      border-radius: 10px;
+      text-align: left;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .history-item {
+      font-size: 1rem;
+      margin-bottom: 5px;
+    }
+
+    .sync-status {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 5px;
+    }
+
+    .last-updated {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 5px;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      padding: 15px 0;
+      background-color: #333;
+      color: white;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="counter-container">
+    <h1>
+      Latest Campaign ID 
+      <button class="edit-icon" onclick="editCampaignID()">✏️</button>
+    </h1>
+    <div class="counter-value" id="counter">
+      <span id="counter-number">0</span>
+      <div class="sync-status" id="sync-status">Loading...</div>
+      <div class="last-updated" id="last-updated"></div>
+    </div>
+    <div class="buttons">
+      <button onclick="addCampaignID()" id="add-btn">➕ Add Campaign ID</button>
+      <button onclick="resetCounter()" id="reset-btn">🔄 Reset</button>
+      <button onclick="refreshData()" id="refresh-btn">🔄 Sync</button>
+    </div>
+  </div>
+
+  <div class="history-container">
+    <h2>History</h2>
+    <div id="history-list"></div>
+  </div>
+
+  <footer>
+    <p>Crafted with ❤️ by <a href="#" style="color: #e223b9;">/budifelt</a></p>
+  </footer>
+
+  <script>
+  const scriptUrl = 'https://script.google.com/macros/s/AKfycbyDT--aJ_-nrpkhqeuTFPQkQk07XDOCQVaLs14cOGuIfEx9uH0es3j1pHrk7j6NRheYJQ/exec';
+
+  const CACHE_KEY = 'campaignCounter_lastValue';
+  const CACHE_TIMESTAMP = 'campaignCounter_lastUpdated';
+  const HISTORY_CACHE_KEY = 'campaignCounter_history';
+
+  // Queue lokal untuk campaign ID yang belum di-sync
+  let pendingCampaigns = [];
+
+  function showCachedValue() {
+    const cachedValue = localStorage.getItem(CACHE_KEY);
+    const cachedTime = localStorage.getItem(CACHE_TIMESTAMP);
+
+    if (cachedValue) {
+      document.getElementById('counter-number').textContent = cachedValue;
+      if (cachedTime) {
+        const date = new Date(parseInt(cachedTime));
+        document.getElementById('last-updated').textContent = `Last updated: ${date.toLocaleString()}`;
+      }
+      document.getElementById('sync-status').textContent = '✓ Cached value';
+    }
+  }
+
+  function updateCounterUI(newValue) {
+    document.getElementById('counter-number').textContent = newValue;
+    document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
+    document.getElementById('sync-status').textContent = '✓ Synced';
+    localStorage.setItem(CACHE_KEY, newValue);
+    localStorage.setItem(CACHE_TIMESTAMP, Date.now());
+  }
+
+  async function updateCounter() {
+    const counterElement = document.getElementById('counter-number');
+    const syncStatus = document.getElementById('sync-status');
+
+    try {
+      syncStatus.textContent = '↻ Syncing...';
+      document.getElementById('counter').classList.add('loading');
+
+      const response = await fetch(scriptUrl);
+      const data = await response.json();
+
+      let currentValue = parseInt(data.result);
+      // Tambahkan semua pending campaigns lokal
+      currentValue += pendingCampaigns.length;
+
+      updateCounterUI(currentValue);
+      pendingCampaigns = []; // kosongkan queue setelah update
+
+      document.getElementById('counter').classList.remove('loading');
+      updateHistory();
+    } catch (error) {
+      console.error('Error fetching counter:', error);
+      syncStatus.textContent = '⚠ Failed to sync';
+      document.getElementById('counter').classList.remove('loading');
+    }
+  }
+
+  async function updateHistory() {
+    try {
+      const response = await fetch(`${scriptUrl}?action=history`);
+      const data = await response.json();
+
+      localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(data.result));
+
+      const historyList = document.getElementById('history-list');
+      historyList.innerHTML = data.result.map(entry =>
+        `<div class="history-item">ID: ${entry.value} - ${entry.timestamp}</div>`
+      ).join('');
+    } catch (error) {
+      console.error('Error fetching history:', error);
+      // Tampilkan cached history
+      const cachedHistory = localStorage.getItem(HISTORY_CACHE_KEY);
+      if (cachedHistory) {
+        const history = JSON.parse(cachedHistory);
+        const historyList = document.getElementById('history-list');
+        historyList.innerHTML = history.map(entry =>
+          `<div class="history-item">ID: ${entry.value} - ${entry.timestamp}</div>`
+        ).join('');
+      }
+    }
+  }
+
+  function addCampaignID() {
+    // Tambah cepat ke counter lokal
+    const counterElement = document.getElementById('counter-number');
+    let currentValue = parseInt(counterElement.textContent) || 0;
+    currentValue++;
+    counterElement.textContent = currentValue;
+
+    // Tambahkan ke pending queue
+    pendingCampaigns.push(currentValue);
+
+    // Tambahkan ke history lokal
+    const historyList = document.getElementById('history-list');
+    const timestamp = new Date().toLocaleString();
+    historyList.insertAdjacentHTML('afterbegin', `<div class="history-item">ID: ${currentValue} - ${timestamp} (pending)</div>`);
+
+    document.getElementById('sync-status').textContent = '⚡ Pending sync...';
+
+    // Simpan cache lokal sementara
+    localStorage.setItem(CACHE_KEY, currentValue);
+    localStorage.setItem(CACHE_TIMESTAMP, Date.now());
+
+    // Async sync ke server, tapi jangan block UI
+    syncPendingCampaigns();
+  }
+
+  async function syncPendingCampaigns() {
+    if (pendingCampaigns.length === 0) return;
+
+    try {
+      // Kirim semua pending campaigns satu per satu atau batched
+      for (const _id of pendingCampaigns) {
+        await fetch(`${scriptUrl}?action=increment`);
+      }
+      pendingCampaigns = [];
+      document.getElementById('sync-status').textContent = '✓ Synced';
+    } catch (err) {
+      console.error('Failed to sync pending campaigns:', err);
+      document.getElementById('sync-status').textContent = '⚠ Pending sync failed';
+    }
+  }
+
+  async function resetCounter() {
+    if (confirm('Are you sure you want to reset the Campaign ID?')) {
+      disableButtons(true);
+      try {
+        await fetch(`${scriptUrl}?action=reset`);
+        pendingCampaigns = [];
+        await updateCounter();
+      } catch (error) {
+        console.error('Error resetting counter:', error);
+        alert('Failed to reset campaign ID. Please try again.');
+      } finally {
+        disableButtons(false);
+      }
+    }
+  }
+
+  async function editCampaignID() {
+    const newID = prompt('Enter the new Campaign ID:');
+    if (newID !== null && !isNaN(newID)) {
+      disableButtons(true);
+      try {
+        await fetch(`${scriptUrl}?action=edit&value=${newID}`);
+        pendingCampaigns = [];
+        await updateCounter();
+      } catch (error) {
+        console.error('Error editing campaign ID:', error);
+        alert('Failed to edit campaign ID. Please try again.');
+      } finally {
+        disableButtons(false);
+      }
+    } else if (newID !== null) {
+      alert('Please enter a valid number.');
+    }
+  }
+
+  function disableButtons(disabled) {
+    document.getElementById('add-btn').disabled = disabled;
+    document.getElementById('reset-btn').disabled = disabled;
+    document.getElementById('refresh-btn').disabled = disabled;
+  }
+
+  function refreshData() {
+    updateCounter();
+  }
+
+  // Initialize
+  showCachedValue();
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      updateCounter();
+    }, 100);
+  });
+
+  // Auto-refresh setiap 30 detik
+  setInterval(() => {
+    updateCounter();
+  }, 30000);
+</script>
+
+</body>
+</html>
