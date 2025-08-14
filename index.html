@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha-Sensei- Welcome</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .split-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .top-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bottom-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .welcome-content {
+            text-align: center;
+            color: white;
+            z-index: 10;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .welcome-title {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            animation: slideInFromTop 1s ease-out 0.3s both;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            font-weight: 300;
+            animation: slideInFromTop 1s ease-out 0.5s both;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            width: 100%;
+            animation: fadeInUp 1s ease-out 0.7s both;
+        }
+
+        .tool-card {
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            border-radius: 15px;
+            padding: 30px 20px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+            position: relative;
+            overflow: hidden;
+            animation: cardEntrance 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .tool-card:nth-child(1) { animation-delay: 0.8s; }
+        .tool-card:nth-child(2) { animation-delay: 0.9s; }
+        .tool-card:nth-child(3) { animation-delay: 1.0s; }
+        .tool-card:nth-child(4) { animation-delay: 1.1s; }
+        .tool-card:nth-child(5) { animation-delay: 1.2s; }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .tool-card:hover::before {
+            left: 100%;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            border-color: #667eea;
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+            background: #fff;
+        }
+
+        .tool-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+            animation: iconFloat 3s ease-in-out infinite;
+            animation-delay: 1.5s;
+            transition: transform 0.3s ease;
+        }
+
+        .tool-card:hover .tool-icon {
+            transform: scale(1.2) rotate(5deg);
+        }
+
+        .tool-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            transition: color 0.3s ease;
+        }
+
+        .tool-card:hover .tool-title {
+            color: #667eea;
+        }
+
+        .tool-description {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.3;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        .tool-card:hover .tool-description {
+            color: #555;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.3);
+            transform: scale(0);
+            animation: rippleEffect 0.6s linear;
+            pointer-events: none;
+        }
+
+        .glow-effect {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 15px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .tool-card:hover .glow-effect {
+            opacity: 0.7;
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 999;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.5s ease;
+        }
+
+        .page-transition.active {
+            transform: scaleX(1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        @keyframes rippleEffect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .split-container {
+                flex-direction: column;
+            }
+            
+            .top-section, .bottom-section {
+                flex: none;
+                min-height: 50vh;
+            }
+            
+            .welcome-title {
+                font-size: 2.5rem;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .tool-card {
+                padding: 25px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div class="page-transition" id="pageTransition"></div>
+    
+    <div class="split-container">
+        <div class="top-section">
+            <div class="welcome-content">
+                <h1 class="welcome-title">Alpha-Sensei @budifelt</h1>
+                <p class="welcome-subtitle">A toolset for eDM -lolololol jk, wuwlulululuy </p>
+            </div>
+        </div>
+        
+        <div class="bottom-section">
+            <div class="tools-grid">
+                <a href="config.html" class="tool-card" data-tool="config">
+                    <div class="glow-effect"></div>
+                    <span class="tool-icon">⚙️</span>
+                    <h3 class="tool-title">Configuration</h3>
+                    <p class="tool-description">Manage and configure your application settings</p>
+                </a>
+                
+                <a href="database-checker.html" class="tool-card" data-tool="database">
+                    <div class="glow-effect"></div>
+                    <span class="tool-icon">🗄️</span>
+                    <h3 class="tool-title">Database Checker</h3>
+                    <p class="tool-description">Monitor and validate your database connections</p>
+                </a>
+                
+                <a href="layout-checker.html" class="tool-card" data-tool="layout">
+                    <div class="glow-effect"></div>
+                    <span class="tool-icon">📐</span>
+                    <h3 class="tool-title">Layout Checker</h3>
+                    <p class="tool-description">Verify and test your layout configurations</p>
+                </a>
+                
+                <a href="wfh-tracker.html" class="tool-card" data-tool="wfh">
+                    <div class="glow-effect"></div>
+                    <span class="tool-icon">🏠</span>
+                    <h3 class="tool-title">WFH Tracker</h3>
+                    <p class="tool-description">Track work-from-home activities and productivity</p>
+                </a>
+                
+                <a href="campaign-counter.html" class="tool-card" data-tool="campaign">
+                    <div class="glow-effect"></div>
+                    <span class="tool-icon">📊</span>
+                    <h3 class="tool-title">Campaign Counter</h3>
+                    <p class="tool-description">Count and track campaign metrics</p>
+                </a>
+                
+                <a href="bookmarklet.html" class="tool-card" data-tool="bookmarklet">
+                    <div class="glow-effect"></div>
+                    <span class="tool-icon">🔖</span>
+                    <h3 class="tool-title">Bookmarklet</h3>
+                    <p class="tool-description">Download and manage bookmarklets for quick access</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Loading animation
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                }, 500);
+            }, 1000);
+        });
+
+        // Modern page transition
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const toolName = this.dataset.tool;
+                const href = this.href;
+                
+                // Add ripple effect
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                
+                this.appendChild(ripple);
+                
+                // Add transition effect
+                setTimeout(() => {
+                    document.getElementById('pageTransition').classList.add('active');
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 500);
+                }, 300);
+            });
+        });
+
+        // Add hover sound effect (visual feedback)
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.05)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const cards = document.querySelectorAll('.tool-card');
+                const activeIndex = Array.from(cards).findIndex(card => card === document.activeElement);
+                const nextIndex = (activeIndex + 1) % cards.length;
+                cards[nextIndex].focus();
+            }
+        });
+    </script>
+</body>
+</html>
