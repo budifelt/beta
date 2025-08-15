@@ -1,0 +1,229 @@
+import React, { useMemo, useState } from "react";
+
+// Simple, dependency‑free page that:
+// 1) Takes Campaign ID (YYYYMMDD_NAMACAMPAIGN_NOMORCAMPAIGNID)
+// 2) Takes a single email address
+// 3) Generates 4 .txt files with the expected contents & naming
+// 4) Lets user either download files or save directly to a folder (File System Access API)
+// Tailwind is available by default in this environment.
+
+export default function App() {
+  const [campaignId, setCampaignId] = useState("");
+  const [email, setEmail] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const recordId = useMemo(() =>
+    campaignId ? `${campaignId}-000001` : "",
+  [campaignId]);
+
+  const isValidCampaign = useMemo(() => {
+    // YYYYMMDD_NAMACAMPAIGN_NOMORCAMPAIGNID (strict uppercase letters/digits/underscore for name)
+    // Example: 20250525_ABC_700
+    const re = /^\d{8}_[A-Z0-9]+_\d+$/;
+    return re.test(campaignId);
+  }, [campaignId]);
+
+  const isValidEmail = useMemo(() => {
+    // simple sanity check
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }, [email]);
+
+  const canGenerate = isValidCampaign && isValidEmail;
+
+  // ---- File Builders -------------------------------------------------------
+  function buildCustMast() {
+    // Example line from user file:
+    // 20250525_ABC_700-000001|budi@gmail.com|||||||||||||||||
+    const emptyCount = 17; // number of trailing empty fields in sample
+    const empties = Array(emptyCount).fill("").join("|");
+    return `${recordId}|${email}|${empties}` + "|\n"; // trailing pipe + newline, matching sample style
+  }
+
+  function buildCustPref() {
+    // Example:
+    // 20250525_ABC_700-000001|budi@gmail.com|CMPG_ID|20250525_ABC_700|
+    return `${recordId}|${email}|CMPG_ID|${campaignId}|\n`;
+  }
+
+  function buildCustSubs() {
+    // Example:
+    // 20250525_ABC_700-000001|budi@gmail.com|IMO Marketing|Y|
+    return `${recordId}|${email}|IMO Marketing|Y|\n`;
+  }
+
+  function buildCustAttr() {
+    // Keep minimal & consistent with sample’s first block (the CMPG_ID attribute mapping)
+    // Example:
+    // 20250525_ABC_700-000001|budi@gmail.com|CMPG_ID|20250525_ABC_700|
+    return `${recordId}|${email}|CMPG_ID|${campaignId}|\n`;
+  }
+
+  function buildAllFiles() {
+    return {
+      [`${campaignId}-CustMast.txt`]: buildCustMast(),
+      [`${campaignId}-CustPref.txt`]: buildCustPref(),
+      [`${campaignId}-CustSubs.txt`]: buildCustSubs(),
+      [`${campaignId}-CustAttr.txt`]: buildCustAttr(),
+    } as Record<string, string>;
+  }
+
+  // ---- Download helpers ----------------------------------------------------
+  function downloadText(filename: string, content: string) {
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function saveAllToFolder() {
+    setError(null);
+    try {
+      if (!("showDirectoryPicker" in window)) {
+        throw new Error(
+          "Browser Anda tidak mendukung 'Save to folder'. Coba Chrome/Edge desktop."
+        );
+      }
+
+      // @ts-ignore - File System Access API
+      const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+      const files = buildAllFiles();
+
+      setSaving(true);
+      for (const [name, content] of Object.entries(files)) {
+        // @ts-ignore
+        const fileHandle = await dirHandle.getFileHandle(name, { create: true });
+        // @ts-ignore
+        const writable = await fileHandle.createWritable();
+        await writable.write(content);
+        await writable.close();
+      }
+    } catch (e: any) {
+      if (e?.name === "AbortError") {
+        // user canceled picker — not an actual error
+        return;
+      }
+      setError(e?.message || "Gagal menyimpan ke folder.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function downloadAll() {
+    const files = buildAllFiles();
+    Object.entries(files).forEach(([name, content]) => downloadText(name, content));
+  }
+
+  // ---- Preview -------------------------------------------------------------
+  const previews = useMemo(() => {
+    if (!canGenerate) return null;
+    return {
+      custMast: buildCustMast(),
+      custPref: buildCustPref(),
+      custSubs: buildCustSubs(),
+      custAttr: buildCustAttr(),
+    };
+  }, [canGenerate, campaignId, email]);
+
+  return (
+    <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center p-6">
+      <div className="w-full max-w-4xl">
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Campaign File Generator</h1>
+          <p className="text-slate-400 mt-1">Masukkan <span className="font-mono">Campaign ID</span> & email → generate 4 file .txt: <span className="font-mono">CustMast</span>, <span className="font-mono">CustPref</span>, <span className="font-mono">CustSubs</span>, <span className="font-mono">CustAttr</span>.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="md:col-span-2">
+            <label className="text-sm text-slate-300">Campaign ID</label>
+            <input
+              className={`mt-1 w-full rounded-2xl bg-slate-900 border ${isValidCampaign ? "border-slate-700" : "border-rose-500"} px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono`}
+              placeholder="YYYYMMDD_NAMACAMPAIGN_NOMOR"
+              value={campaignId}
+              onChange={(e) => setCampaignId(e.target.value.toUpperCase())}
+              spellCheck={false}
+            />
+            <p className="text-xs mt-1 text-slate-400">Contoh: <span className="font-mono">20250525_ABC_700</span></p>
+          </div>
+          <div>
+            <label className="text-sm text-slate-300">Email</label>
+            <input
+              className={`mt-1 w-full rounded-2xl bg-slate-900 border ${isValidEmail ? "border-slate-700" : "border-rose-500"} px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+              placeholder="nama@contoh.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              spellCheck={false}
+            />
+          </div>
+        </div>
+
+        {!isValidCampaign && campaignId && (
+          <div className="text-rose-400 text-sm mb-2">Format Campaign ID harus <span className="font-mono">YYYYMMDD_NAMACAMPAIGN_NOMOR</span>.</div>
+        )}
+        {!isValidEmail && email && (
+          <div className="text-rose-400 text-sm mb-2">Format email tidak valid.</div>
+        )}
+
+        <div className="flex flex-wrap gap-3 mb-6">
+          <button
+            onClick={downloadAll}
+            disabled={!canGenerate}
+            className={`px-4 py-2 rounded-2xl shadow disabled:opacity-40 bg-indigo-600 hover:bg-indigo-500 transition`}
+            title={!canGenerate ? "Lengkapi input dulu" : "Download 4 file"}
+          >
+            Download 4 file
+          </button>
+          <button
+            onClick={saveAllToFolder}
+            disabled={!canGenerate || saving}
+            className={`px-4 py-2 rounded-2xl shadow disabled:opacity-40 bg-emerald-600 hover:bg-emerald-500 transition`}
+            title={!canGenerate ? "Lengkapi input dulu" : "Simpan langsung ke folder"}
+          >
+            {saving ? "Menyimpan…" : "Save to folder"}
+          </button>
+        </div>
+
+        {error && (
+          <div className="text-amber-300 text-sm mb-4">
+            {error}
+          </div>
+        )}
+
+        {previews && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <PreviewCard title={`${campaignId}-CustMast.txt`} content={previews.custMast} />
+            <PreviewCard title={`${campaignId}-CustPref.txt`} content={previews.custPref} />
+            <PreviewCard title={`${campaignId}-CustSubs.txt`} content={previews.custSubs} />
+            <PreviewCard title={`${campaignId}-CustAttr.txt`} content={previews.custAttr} />
+          </div>
+        )}
+
+        <div className="mt-6 text-xs text-slate-400">
+          <p>
+            Catatan: "Save to folder" memakai File System Access API (tersedia di Chrome/Edge desktop). Jika tidak didukung, gunakan tombol <em>Download 4 file</em>.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PreviewCard({ title, content }: { title: string; content: string }) {
+  return (
+    <div className="bg-slate-900 rounded-2xl shadow p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-medium text-slate-200 truncate pr-2">{title}</h3>
+        <span className="text-[10px] px-2 py-1 rounded-full bg-slate-800 border border-slate-700">preview</span>
+      </div>
+      <pre className="mt-3 text-sm overflow-auto max-h-40 whitespace-pre-wrap leading-relaxed font-mono text-slate-300">
+        {content}
+      </pre>
+    </div>
+  );
+}
