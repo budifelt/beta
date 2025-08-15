@@ -7,92 +7,168 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100">
-  <main class="max-w-5xl mx-auto p-6">
+  <main class="max-w-6xl mx-auto p-6">
     <header class="mb-6">
       <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">Campaign File Generator</h1>
-      <p class="text-slate-400 mt-1">Masukkan <span class="font-mono">Campaign ID</span> (wajib diawali <strong>YYYYMMDD</strong>, sisanya bebas) & banyak email → generate 4 file .txt: <span class="font-mono">CustMast</span>, <span class="font-mono">CustPref</span>, <span class="font-mono">CustSubs</span>, <span class="font-mono">CustAttr</span>.</p>
+      <div class="mt-2">
+        <label class="text-sm text-slate-300">Campaign ID</label>
+        <input id="campaignId" class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-2 font-mono" placeholder="YYYYMMDD_nama_bebas" />
+        <p class="text-xs text-slate-400 mt-1">Contoh: <span class="font-mono">20250817_Independence-Day_1700</span></p>
+      </div>
     </header>
 
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <div class="md:col-span-2">
-        <label class="text-sm text-slate-300">Campaign ID</label>
-        <input id="campaignId" class="mt-1 w-full rounded-2xl bg-slate-900 border border-slate-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" placeholder="YYYYMMDD_nama_bebas" spellcheck="false" />
-        <p class="text-xs mt-1 text-slate-400">Contoh: <span class="font-mono">20250817_Independence-Day_1700</span></p>
-      </div>
-      <div class="md:col-span-1">
-        <label class="text-sm text-slate-300">Emails</label>
-        <textarea id="emails" class="mt-1 w-full rounded-2xl bg-slate-900 border border-slate-700 px-4 py-3 h-32 resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" placeholder="satu email per baris&#10;contoh1@mail.com&#10;contoh2@mail.com" spellcheck="false"></textarea>
-        <div class="text-xs mt-1 text-slate-400 flex items-center gap-2">
-          <span id="countInfo">Total: 0</span>
-          <span id="invalidInfo" class="hidden text-rose-400"></span>
+    <section class="mb-4">
+      <div class="flex items-center gap-4 mb-4">
+        <button id="addKey" class="px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40">Tambah kolom KRHRED</button>
+        <div class="flex items-end gap-2 ml-auto">
+          <input id="newEmail" class="w-64 rounded-xl bg-slate-900 border border-slate-700 px-3 py-1 font-mono" placeholder="email@contoh.com" />
+          <button id="addEmail" class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500">Tambah Email</button>
         </div>
+      </div>
+      <div class="overflow-auto border border-slate-800 rounded-2xl">
+        <table class="min-w-full text-sm" id="krTable">
+          <thead>
+            <tr id="krHeadRow">
+              <th class="text-left px-3 py-2 bg-slate-900/80 backdrop-blur sticky left-0">Email</th>
+              <!-- KRHRED header akan muncul di sini -->
+            </tr>
+          </thead>
+          <tbody id="krBody"></tbody>
+        </table>
       </div>
     </section>
 
-    <div class="flex flex-wrap gap-3 mb-6">
+    <div class="flex flex-wrap items-center gap-3 mb-6">
       <button id="btnDownload" class="px-4 py-2 rounded-2xl shadow bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40" disabled>Download 4 file</button>
-      <button id="btnSave" class="px-4 py-2 rounded-2xl shadow bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40" disabled>Save to folder</button>
+      <span id="stateMsg" class="text-xs text-slate-400"></span>
     </div>
-
-    <p id="error" class="text-amber-300 text-sm mb-4 hidden"></p>
 
     <section id="previews" class="grid grid-cols-1 md:grid-cols-2 gap-4"></section>
 
-    <footer class="mt-6 text-xs text-slate-400">
-      <p>Catatan: "Save to folder" memakai File System Access API (tersedia di Chrome/Edge desktop). Jika tidak didukung, gunakan tombol <em>Download 4 file</em>.</p>
-    </footer>
+    <!-- Simple test harness -->
+    <section class="mt-8 border-t border-slate-800 pt-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm text-slate-300">Self Test</h2>
+        <button id="runTests" class="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs">Run Tests</button>
+      </div>
+      <pre id="testLog" class="mt-2 text-xs bg-slate-900 rounded-xl p-3 overflow-auto max-h-56"></pre>
+    </section>
   </main>
 
   <script>
-    const $ = (sel) => document.querySelector(sel);
+    // Elements
+    const tableHead = document.querySelector('#krHeadRow');
+    const tableBody = document.querySelector('#krBody');
+    const addKeyBtn = document.querySelector('#addKey');
+    const addEmailBtn = document.querySelector('#addEmail');
+    const newEmailInput = document.querySelector('#newEmail');
+    const campaignIdInput = document.querySelector('#campaignId');
+    const btnDownload = document.querySelector('#btnDownload');
+    const stateMsg = document.querySelector('#stateMsg');
+    const previewsEl = document.querySelector('#previews');
+    const runTestsBtn = document.querySelector('#runTests');
+    const testLog = document.querySelector('#testLog');
 
+    // State
+    let krKeys = [];           // e.g. ["KRHRED_Unit_30", ...]
+    let krCounter = 30;        // auto 30, 31, 32, ...
+
+    // Regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const campaignRegex = /^\d{8}.*$/; // Wajib diawali 8 digit angka (YYYYMMDD)
+    const campRegex = /^\d{8}.*$/; // YYYYMMDD di awal
 
-    const campaignIdEl = $('#campaignId');
-    const emailsEl = $('#emails');
-    const btnDownload = $('#btnDownload');
-    const btnSave = $('#btnSave');
-    const errorEl = $('#error');
-    const previewsEl = $('#previews');
-    const countInfo = $('#countInfo');
-    const invalidInfo = $('#invalidInfo');
-
-    function parseEmails(text) {
-      const raw = text.split(/[\n,\s]+/).map(s => s.trim()).filter(Boolean);
-      const seen = new Set();
-      const list = [];
-      for (const e of raw) { if (!seen.has(e)) { seen.add(e); list.push(e); } }
-      return list;
+    // ----- Columns (KRHRED) -----
+    function removeColumn(key) {
+      const ths = Array.from(tableHead.children);
+      const idx = ths.findIndex(th => th.getAttribute && th.getAttribute('data-key') === key);
+      if (idx === -1) return;
+      ths[idx].remove();
+      for (const tr of tableBody.rows) tr.deleteCell(idx);
+      krKeys = krKeys.filter(k => k !== key);
+      refreshState();
     }
 
-    function recordId(campaignId, i) {
-      return `${campaignId}-${String(i + 1).padStart(6, '0')}`;
+    function addColumn() {
+      let key = `KRHRED_Unit_${krCounter++}`;
+      while (krKeys.includes(key)) key = `KRHRED_Unit_${krCounter++}`;
+      krKeys.push(key);
+      const th = document.createElement('th');
+      th.className = 'px-3 py-2 whitespace-nowrap';
+      th.setAttribute('data-key', key);
+      th.innerHTML = `<div class="flex items-center gap-2"><span class="font-mono">${key}</span><button class="text-slate-400 hover:text-rose-400" data-remove-key="${key}" title="Hapus kolom">✕</button></div>`;
+      tableHead.appendChild(th);
+      for (const row of tableBody.rows) {
+        const td = document.createElement('td');
+        td.innerHTML = `<input class='w-40 bg-slate-800 px-2 py-1 rounded border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500' />`;
+        row.appendChild(td);
+      }
+      th.querySelector('[data-remove-key]').addEventListener('click', () => removeColumn(key));
+      refreshState();
     }
 
-    function rowCustMast(id, email) {
-      const emptyCount = 17;
-      const empties = Array(emptyCount).fill('').join('|');
-      return `${id}|${email}|${empties}|\n`;
-    }
-    function rowCustPref(id, email, campaignId) {
-      return `${id}|${email}|CMPG_ID|${campaignId}|\n`;
-    }
-    function rowCustSubs(id, email) {
-      return `${id}|${email}|IMO Marketing|Y|\n`;
-    }
-    function rowCustAttr(id, email, campaignId) {
-      return `${id}|${email}|CMPG_ID|${campaignId}|\n`;
+    // ----- Rows (Emails) -----
+    function addEmail() {
+      const email = (newEmailInput.value || '').trim();
+      if (!email) return alert('Email kosong');
+      if (!emailRegex.test(email)) return alert('Email tidak valid');
+      // dedupe
+      for (const tr of tableBody.rows) if (tr.cells[0].dataset.email === email) return alert('Email sudah ada');
+
+      const tr = document.createElement('tr');
+      const tdEmail = document.createElement('td');
+      tdEmail.className = 'px-3 py-2 sticky left-0 bg-slate-900/80 backdrop-blur';
+      tdEmail.dataset.email = email;
+      tdEmail.innerHTML = `<div class="flex items-center gap-2"><span class="font-mono">${email}</span><button class="text-slate-400 hover:text-rose-400" title="Hapus email">🗑</button></div>`;
+      tr.appendChild(tdEmail);
+      for (const _ of krKeys) {
+        const td = document.createElement('td');
+        td.innerHTML = `<input class='w-40 bg-slate-800 px-2 py-1 rounded border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500' />`;
+        tr.appendChild(td);
+      }
+      tableBody.appendChild(tr);
+      newEmailInput.value = '';
+
+      tdEmail.querySelector('button').addEventListener('click', () => { tr.remove(); refreshState(); });
+      refreshState();
     }
 
-    function buildAllFiles(campaignId, emails) {
+    // ----- Build files & download -----
+    function refreshState() {
+      const hasRows = tableBody.rows.length > 0;
+      const campOk = campRegex.test((campaignIdInput.value || '').trim());
+      btnDownload.disabled = !(hasRows && campOk);
+      stateMsg.textContent = btnDownload.disabled ? 'Isi Campaign ID yang valid (YYYYMMDD...) & minimal 1 email.' : '';
+      renderPreviews();
+    }
+
+    function getRows() {
+      const out = [];
+      for (const tr of tableBody.rows) {
+        const email = tr.cells[0].dataset.email || tr.cells[0].innerText.trim();
+        const vals = {};
+        for (let i = 0; i < krKeys.length; i++) {
+          const input = tr.cells[i + 1]?.querySelector('input');
+          vals[krKeys[i]] = input ? input.value : '';
+        }
+        out.push({ email, vals });
+      }
+      return out;
+    }
+
+    function recordId(campaignId, i) { return `${campaignId}-${String(i + 1).padStart(6, '0')}`; }
+
+    function buildFiles() {
+      const campaignId = (campaignIdInput.value || '').trim();
+      const rows = getRows();
       let mast = '', pref = '', subs = '', attr = '';
-      emails.forEach((email, i) => {
+      rows.forEach((row, i) => {
         const id = recordId(campaignId, i);
-        mast += rowCustMast(id, email);
-        pref += rowCustPref(id, email, campaignId);
-        subs += rowCustSubs(id, email);
-        attr += rowCustAttr(id, email, campaignId);
+        const email = row.email;
+        mast += `${id}|${email}|${Array(17).fill('').join('|')}|\n`;
+        pref += `${id}|${email}|CMPG_ID|${campaignId}|\n`;
+        subs += `${id}|${email}|IMO Marketing|Y|\n`;
+        attr += `${id}|${email}|CMPG_ID|${campaignId}|\n`;
+        for (const key of krKeys) attr += `${id}|${email}|${key}|${row.vals[key] ?? ''}|\n`;
       });
       return {
         [`${campaignId}-CustMast.txt`]: mast,
@@ -102,81 +178,93 @@
       };
     }
 
-    function downloadText(filename, content) {
+    function downloadText(name, content) {
       const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
+      a.href = url; a.download = name; document.body.appendChild(a);
+      // trigger asynchronously for better compatibility
+      setTimeout(() => {
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+      }, 0);
     }
 
-    async function saveAllToFolder(files) {
-      errorEl.classList.add('hidden');
-      try {
-        if (!('showDirectoryPicker' in window)) throw new Error("Browser Anda tidak mendukung 'Save to folder'. Coba Chrome/Edge desktop.");
-        const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-        for (const [name, content] of Object.entries(files)) {
-          const fileHandle = await dirHandle.getFileHandle(name, { create: true });
-          const writable = await fileHandle.createWritable();
-          await writable.write(content); await writable.close();
-        }
-      } catch (e) {
-        if (e && e.name === 'AbortError') return;
-        errorEl.textContent = e?.message || 'Gagal menyimpan ke folder.';
-        errorEl.classList.remove('hidden');
-      }
-    }
-
-    function updateUI() {
-      const campaignId = campaignIdEl.value.trim();
-      const emails = parseEmails(emailsEl.value);
-      const invalid = emails.filter(e => !emailRegex.test(e));
-
-      countInfo.textContent = `Total: ${emails.length}`;
-      if (invalid.length) {
-        invalidInfo.textContent = `Invalid: ${invalid.slice(0,3).join(', ')}${invalid.length>3?', …':''}`;
-        invalidInfo.classList.remove('hidden');
-      } else {
-        invalidInfo.classList.add('hidden');
-      }
-
-      const ok = campaignRegex.test(campaignId) && emails.length > 0 && invalid.length === 0;
-      btnDownload.disabled = !ok; btnSave.disabled = !ok;
-
-      previewsEl.innerHTML = '';
-      if (!ok) return;
-      const show = Math.min(emails.length, 5);
-      const ids = Array.from({length: show}, (_, i) => recordId(campaignId, i));
-      const sample = emails.slice(0, show);
-      const previews = {
-        [`${campaignId}-CustMast.txt`]: sample.map((e,i)=>rowCustMast(ids[i], e)).join('') + (emails.length>show?'…\n':''),
-        [`${campaignId}-CustPref.txt`]: sample.map((e,i)=>rowCustPref(ids[i], e, campaignId)).join('') + (emails.length>show?'…\n':''),
-        [`${campaignId}-CustSubs.txt`]: sample.map((e,i)=>rowCustSubs(ids[i], e)).join('') + (emails.length>show?'…\n':''),
-        [`${campaignId}-CustAttr.txt`]: sample.map((e,i)=>rowCustAttr(ids[i], e, campaignId)).join('') + (emails.length>show?'…\n':''),
+    function downloadFiles() {
+      const files = buildFiles();
+      const entries = Object.entries(files);
+      let i = 0;
+      const next = () => {
+        if (i >= entries.length) return;
+        const [name, content] = entries[i++];
+        downloadText(name, content);
+        setTimeout(next, 120);
       };
-      for (const [name, content] of Object.entries(previews)) {
+      next();
+    }
+
+    function renderPreviews() {
+      previewsEl.innerHTML = '';
+      const campaignId = (campaignIdInput.value || '').trim();
+      if (!campRegex.test(campaignId) || tableBody.rows.length === 0) return;
+      const files = buildFiles();
+      const maxLines = 5;
+      for (const [name, content] of Object.entries(files)) {
+        const lines = content.split('\n').slice(0, maxLines).join('\n');
         const card = document.createElement('div');
         card.className = 'bg-slate-900 rounded-2xl shadow p-4';
         card.innerHTML = `<div class="flex items-center justify-between"><h3 class="font-medium text-slate-200 truncate pr-2">${name}</h3><span class="text-[10px] px-2 py-1 rounded-full bg-slate-800 border border-slate-700">preview</span></div><pre class="mt-3 text-sm overflow-auto max-h-40 whitespace-pre-wrap leading-relaxed font-mono text-slate-300"></pre>`;
-        card.querySelector('pre').textContent = content;
+        card.querySelector('pre').textContent = lines + (content.split('\n').length > maxLines ? '\n…' : '');
         previewsEl.appendChild(card);
       }
     }
 
-    campaignIdEl.addEventListener('input', updateUI);
-    emailsEl.addEventListener('input', updateUI);
+    // ----- Test harness -----
+    function log(msg) { testLog.textContent += msg + "\n"; }
+    function assert(cond, msg) { log((cond ? '✅' : '❌') + ' ' + msg); }
 
-    btnDownload.addEventListener('click', () => {
-      const files = buildAllFiles(campaignIdEl.value.trim(), parseEmails(emailsEl.value));
-      Object.entries(files).forEach(([name, content]) => downloadText(name, content));
-    });
+    function runTests() {
+      testLog.textContent = '';
+      // reset table
+      tableBody.innerHTML = '';
+      krKeys = []; krCounter = 30;
+      tableHead.querySelectorAll('th[data-key]').forEach(th => th.remove());
 
-    btnSave.addEventListener('click', async () => {
-      const files = buildAllFiles(campaignIdEl.value.trim(), parseEmails(emailsEl.value));
-      await saveAllToFolder(files);
-    });
+      // setup
+      campaignIdInput.value = '20250817_Test_1700';
+      addColumn(); // KRHRED_Unit_30
+      addColumn(); // KRHRED_Unit_31
+      newEmailInput.value = 'a@a.com'; addEmail();
+      newEmailInput.value = 'b@b.com'; addEmail();
+      // fill values
+      for (const [rowIdx, tr] of Array.from(tableBody.rows).entries()) {
+        for (let i = 0; i < krKeys.length; i++) {
+          const inp = tr.cells[i + 1].querySelector('input');
+          inp.value = `v${rowIdx}${i}`;
+        }
+      }
 
-    updateUI();
+      const files = buildFiles();
+      assert(Object.keys(files).length === 4, 'Empat file dihasilkan');
+      const names = Object.keys(files);
+      assert(names.every(n => n.startsWith('20250817_Test_1700-')), 'Prefix nama file sesuai Campaign ID');
+      assert(/\n$/.test(files[names[0]]), 'Akhir file ada newline');
+      assert(files[names[3]].includes('KRHRED_Unit_30'), 'CustAttr mengandung KRHRED_Unit_30');
+      assert(files[names[3]].includes('KRHRED_Unit_31'), 'CustAttr mengandung KRHRED_Unit_31');
+
+      log('\nSelesai. Jika semua ✅, fungsi dasar OK.');
+    }
+
+    // Events
+    addKeyBtn.addEventListener('click', addColumn);
+    addEmailBtn.addEventListener('click', addEmail);
+    campaignIdInput.addEventListener('input', refreshState);
+    tableBody.addEventListener('input', (e) => { if (e.target.tagName === 'INPUT') renderPreviews(); });
+    btnDownload.addEventListener('click', downloadFiles);
+    runTestsBtn.addEventListener('click', runTests);
+
+    // Init
+    refreshState();
   </script>
 </body>
 </html>
