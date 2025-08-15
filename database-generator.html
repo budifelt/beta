@@ -10,14 +10,13 @@
   <main class="max-w-5xl mx-auto p-6">
     <header class="mb-6">
       <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">Campaign File Generator</h1>
-      <p class="text-slate-400 mt-1">Masukkan <span class="font-mono">Campaign ID</span> & banyak email → generate 4 file .txt: <span class="font-mono">CustMast</span>, <span class="font-mono">CustPref</span>, <span class="font-mono">CustSubs</span>, <span class="font-mono">CustAttr</span>.</p>
+      <p class="text-slate-400 mt-1">Masukkan <span class="font-mono">Campaign ID</span> (wajib diawali <strong>YYYYMMDD</strong>, sisanya bebas) & banyak email → generate 4 file .txt: <span class="font-mono">CustMast</span>, <span class="font-mono">CustPref</span>, <span class="font-mono">CustSubs</span>, <span class="font-mono">CustAttr</span>.</p>
     </header>
 
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div class="md:col-span-2">
         <label class="text-sm text-slate-300">Campaign ID</label>
-        <input id="campaignId" class="mt-1 w-full rounded-2xl bg-slate-900 border border-slate-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" placeholder="YYYYMMDD_NAMACAMPAIGN_NOMOR" spellcheck="false" />
-        <p class="text-xs mt-1 text-slate-400">Contoh: <span class="font-mono">20250525_ABC_700</span></p>
+        <input id="campaignId" class="mt-1 w-full rounded-2xl bg-slate-900 border border-slate-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" placeholder="YYYYMMDD_nama_bebas" spellcheck="false" />
       </div>
       <div class="md:col-span-1">
         <label class="text-sm text-slate-300">Emails</label>
@@ -47,7 +46,7 @@
     const $ = (sel) => document.querySelector(sel);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const campRegex = /^\d{8}_[A-Z0-9]+_\d+$/;
+    const campaignRegex = /^\d{8}.*$/; // Wajib diawali 8 digit angka (YYYYMMDD)
 
     const campaignIdEl = $('#campaignId');
     const emailsEl = $('#emails');
@@ -60,7 +59,6 @@
 
     function parseEmails(text) {
       const raw = text.split(/[\n,\s]+/).map(s => s.trim()).filter(Boolean);
-      // de-duplicate while keeping order
       const seen = new Set();
       const list = [];
       for (const e of raw) { if (!seen.has(e)) { seen.add(e); list.push(e); } }
@@ -72,7 +70,7 @@
     }
 
     function rowCustMast(id, email) {
-      const emptyCount = 17; // trailing empty fields from sample
+      const emptyCount = 17;
       const empties = Array(emptyCount).fill('').join('|');
       return `${id}|${email}|${empties}|\n`;
     }
@@ -122,15 +120,14 @@
           await writable.write(content); await writable.close();
         }
       } catch (e) {
-        if (e && e.name === 'AbortError') return; // user canceled
+        if (e && e.name === 'AbortError') return;
         errorEl.textContent = e?.message || 'Gagal menyimpan ke folder.';
         errorEl.classList.remove('hidden');
       }
     }
 
     function updateUI() {
-      const campaignId = campaignIdEl.value.toUpperCase();
-      campaignIdEl.value = campaignId;
+      const campaignId = campaignIdEl.value.trim();
       const emails = parseEmails(emailsEl.value);
       const invalid = emails.filter(e => !emailRegex.test(e));
 
@@ -142,10 +139,9 @@
         invalidInfo.classList.add('hidden');
       }
 
-      const ok = campRegex.test(campaignId) && emails.length > 0 && invalid.length === 0;
+      const ok = campaignRegex.test(campaignId) && emails.length > 0 && invalid.length === 0;
       btnDownload.disabled = !ok; btnSave.disabled = !ok;
 
-      // previews
       previewsEl.innerHTML = '';
       if (!ok) return;
       const show = Math.min(emails.length, 5);
@@ -170,16 +166,15 @@
     emailsEl.addEventListener('input', updateUI);
 
     btnDownload.addEventListener('click', () => {
-      const files = buildAllFiles(campaignIdEl.value.toUpperCase(), parseEmails(emailsEl.value));
+      const files = buildAllFiles(campaignIdEl.value.trim(), parseEmails(emailsEl.value));
       Object.entries(files).forEach(([name, content]) => downloadText(name, content));
     });
 
     btnSave.addEventListener('click', async () => {
-      const files = buildAllFiles(campaignIdEl.value.toUpperCase(), parseEmails(emailsEl.value));
+      const files = buildAllFiles(campaignIdEl.value.trim(), parseEmails(emailsEl.value));
       await saveAllToFolder(files);
     });
 
-    // init
     updateUI();
   </script>
 </body>
