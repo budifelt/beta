@@ -6,9 +6,7 @@
 <title>Checker Dynamic @budifelt</title>
 <style>
   /* Reset and base */
-  * {
-    box-sizing: border-box;
-  }
+  * { box-sizing: border-box; }
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f5f7fa;
@@ -91,13 +89,8 @@
     gap: 8px;
     transition: background-color 0.3s ease;
   }
-  button:hover {
-    background-color: #357abd;
-  }
-  button:disabled {
-    background-color: #a0b9db;
-    cursor: not-allowed;
-  }
+  button:hover { background-color: #357abd; }
+  button:disabled { background-color: #a0b9db; cursor: not-allowed; }
   #status {
     font-family: monospace;
     white-space: pre-wrap;
@@ -108,21 +101,14 @@
     color: #2c3e50;
   }
   /* Icon styles */
-  svg {
-    width: 18px;
-    height: 18px;
-    fill: currentColor;
-  }
-  
+  svg { width: 18px; height: 18px; fill: currentColor; }
   /* Loading animation */
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+  @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
 </style>
 </head>
 <body>
 <h1>Checker Dynamic Content - Paste HTML Version</h1>
+
 <label for="originalUrlInput">Original full URL of the HTML file (optional):</label>
 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
   <input type="text" id="originalUrlInput" placeholder="Enter full URL of the HTML file" style="flex: 1; padding: 8px; font-size: 14px;" />
@@ -133,6 +119,7 @@
     Download
   </button>
 </div>
+
 <label for="htmlInput">Paste HTML content here:</label>
 <div style="align-items: flex-start; gap: 10px;">
   <textarea id="htmlInput" placeholder="Paste your HTML content here" style="flex-grow: 1;"></textarea>
@@ -150,38 +137,40 @@
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
       </button>
+      <!-- NEW: Clear All button -->
+      <button id="clearAllBtn" style="background-color: #e74c3c;">Clear All</button>
     </div>
   </div>
-  
-  <!-- Added container for krhred_unit textboxes -->
+
+  <!-- krhred_unit textboxes -->
   <div id="krhredUnitsContainer" style="display: grid; grid-template-columns: repeat(9, auto); grid-template-rows: repeat(5, auto); grid-gap: 2px 2px; flex: 1; margin-top: 0;">
-  <!-- 10 textboxes with labels -->
-  <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 1;">
-    <input type="text" id="krhred_unit_30" name="krhred_unit_30" placeholder="krhred_unit_30" />
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 2;">
-    <input type="text" id="krhred_unit_31" name="krhred_unit_31" placeholder="krhred_unit_31" />
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 3;">
-    <input type="text" id="krhred_unit_32" name="krhred_unit_32" placeholder="krhred_unit_32" />
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 4;">
-    <input type="text" id="krhred_unit_33" name="krhred_unit_33" placeholder="krhred_unit_33" />
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 5;">
-    <input type="text" id="krhred_unit_34" name="krhred_unit_34" placeholder="krhred_unit_34" />
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 2; grid-row: 1;">
-    <input type="text" id="krhred_unit_35" name="krhred_unit_35" placeholder="krhred_unit_35" />
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 2; grid-row: 2;">
-    <input type="text" id="krhred_unit_36" name="krhred_unit_36" placeholder="krhred_unit_36" />
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 2; grid-row: 3;">
-    <input type="text" id="krhred_unit_37" name="krhred_unit_37" placeholder="krhred_unit_37" />
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 2; grid-row: 4;">
-    <input type="text" id="krhred_unit_38" name="krhred_unit_38" placeholder="krhred_unit_38" />
+    <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 1;">
+      <input type="text" id="krhred_unit_30" name="krhred_unit_30" placeholder="krhred_unit_30" />
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 2;">
+      <input type="text" id="krhred_unit_31" name="krhred_unit_31" placeholder="krhred_unit_31" />
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 3;">
+      <input type="text" id="krhred_unit_32" name="krhred_unit_32" placeholder="krhred_unit_32" />
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 4;">
+      <input type="text" id="krhred_unit_33" name="krhred_unit_33" placeholder="krhred_unit_33" />
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 1; grid-row: 5;">
+      <input type="text" id="krhred_unit_34" name="krhred_unit_34" placeholder="krhred_unit_34" />
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 2; grid-row: 1;">
+      <input type="text" id="krhred_unit_35" name="krhred_unit_35" placeholder="krhred_unit_35" />
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 2; grid-row: 2;">
+      <input type="text" id="krhred_unit_36" name="krhred_unit_36" placeholder="krhred_unit_36" />
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 2; grid-row: 3;">
+      <input type="text" id="krhred_unit_37" name="krhred_unit_37" placeholder="krhred_unit_37" />
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; grid-column: 2; grid-row: 4;">
+      <input type="text" id="krhred_unit_38" name="krhred_unit_38" placeholder="krhred_unit_38" />
+    </div>
   </div>
 </div>
 
@@ -206,14 +195,16 @@
     matchBrackets: true,
   });
 </script>
+
 <script>
   const htmlInput = document.getElementById('htmlInput');
   const checkLayoutBtn = document.getElementById('checkLayoutBtn');
-  const statusDiv = document.getElementById('status');
+  const statusDiv = document.getElementById('status'); // may be null if not present
   const krhredUnitsContainer = document.getElementById('krhredUnitsContainer');
   const addKrhredBtn = document.getElementById('addKrhredBtn');
   const originalUrlInput = document.getElementById('originalUrlInput');
   const downloadBtn = document.getElementById('downloadBtn');
+  const clearAllBtn = document.getElementById('clearAllBtn');
 
   checkLayoutBtn.addEventListener('click', () => {
     let content = editor.getValue();
@@ -221,23 +212,20 @@
       alert('Please paste HTML content first.');
       return;
     }
-    // Replace placeholders <%[KRHRED_Unit_XX]|%> with textbox values or empty string if empty
+    // Replace placeholders <%[KRHRED_Unit_XX]|%> with textbox values or keep placeholder if empty
     const inputs = krhredUnitsContainer.querySelectorAll('input[id^="krhred_unit_"]');
     inputs.forEach(input => {
       const num = input.id.replace('krhred_unit_', '');
       const regex = new RegExp(`<%\\[KRHRED_Unit_${num}\\]\\|%>`, 'g');
       if (input.value && input.value.trim() !== '') {
         content = content.replace(regex, input.value);
-      } else {
-        // Do nothing if input is empty, keep placeholder as is
-        // content = content.replace(regex, '');
       }
     });
     // Fix image URLs to absolute URLs if original URL is provided
-    const originalUrlInput = document.getElementById('originalUrlInput').value.trim();
-    if (originalUrlInput) {
+    const originalUrlValue = document.getElementById('originalUrlInput').value.trim();
+    if (originalUrlValue) {
       try {
-        const urlObj = new URL(originalUrlInput);
+        const urlObj = new URL(originalUrlValue);
         let basePath = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
         content = content.replace(/src="images\//g, `src="${basePath}images/`);
       } catch (e) {
@@ -249,8 +237,7 @@
     const blob = new Blob([content], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
-    statusDiv.textContent = '';
-    statusDiv.id = '';
+    if (statusDiv) { statusDiv.textContent = ''; statusDiv.id = ''; }
   });
 
   addKrhredBtn.addEventListener('click', () => {
@@ -262,19 +249,19 @@
       if (num > maxNum) maxNum = num;
     });
     const newNum = maxNum + 1;
-    
+
     // Calculate grid position for new input
     const gridColumn = Math.floor((newNum - 30) / 5) + 1;
     const gridRow = ((newNum - 30) % 5) + 1;
-    
-    // Create new label and input
+
+    // Create new input
     const div = document.createElement('div');
     div.style.display = 'flex';
     div.style.flexDirection = 'column';
     div.style.alignItems = 'flex-start';
     div.style.gridColumn = gridColumn;
     div.style.gridRow = gridRow;
-    
+
     const input = document.createElement('input');
     input.type = 'text';
     input.id = `krhred_unit_${newNum}`;
@@ -283,7 +270,7 @@
     div.appendChild(input);
     krhredUnitsContainer.appendChild(div);
 
-    // Add input event listener to new input for background color change
+    // Input color feedback
     input.addEventListener('input', () => {
       const length = input.value.trim().length;
       if (length > 60) {
@@ -293,10 +280,11 @@
       } else {
         input.style.backgroundColor = '';
       }
+      saveState();
     });
   });
 
-  // Add input event listeners to existing inputs for background color change
+  // Input color feedback for existing inputs
   const existingInputs = krhredUnitsContainer.querySelectorAll('input[id^="krhred_unit_"]');
   existingInputs.forEach(input => {
     input.addEventListener('input', () => {
@@ -332,7 +320,7 @@
       // Show loading state
       downloadBtn.disabled = true;
       downloadBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px; animation: spin 1s linear infinite;"><path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/></svg>Loading...';
-      
+
       // List of CORS proxy servers to try
       const corsProxies = [
         'https://api.allorigins.win/get?url=',
@@ -340,10 +328,9 @@
         'https://thingproxy.freeboard.io/fetch/',
         'https://api.codetabs.com/v1/proxy?quest='
       ];
-      
+
       let htmlContent = null;
-      let lastError = null;
-      
+
       // Try direct fetch first
       try {
         const response = await fetch(url, {
@@ -352,72 +339,52 @@
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
           }
         });
-        
         if (response.ok) {
           htmlContent = await response.text();
         }
       } catch (directError) {
         console.log('Direct fetch failed, trying proxies...');
       }
-      
+
       // If direct fetch failed, try CORS proxies
       if (!htmlContent) {
         for (const proxy of corsProxies) {
           try {
-            let proxyUrl;
-            let response;
-            
-            if (proxy.includes('allorigins')) {
-              proxyUrl = proxy + encodeURIComponent(url);
-              response = await fetch(proxyUrl);
-              if (response.ok) {
+            let proxyUrl = proxy + encodeURIComponent(url);
+            let response = await fetch(proxyUrl);
+            if (response.ok) {
+              if (proxy.includes('allorigins')) {
                 const data = await response.json();
                 htmlContent = data.contents;
-                break;
-              }
-            } else {
-              proxyUrl = proxy + encodeURIComponent(url);
-              response = await fetch(proxyUrl);
-              if (response.ok) {
+              } else {
                 htmlContent = await response.text();
-                break;
               }
+              break;
             }
           } catch (proxyError) {
-            lastError = proxyError;
             console.log(`Proxy ${proxy} failed:`, proxyError);
             continue;
           }
         }
       }
-      
+
       if (htmlContent) {
-        // Set the content in CodeMirror editor
         editor.setValue(htmlContent);
-        
-        // Show success message
         alert('HTML source code successfully downloaded and pasted!');
       } else {
         throw new Error('All proxy attempts failed');
       }
-      
+
     } catch (error) {
       console.error('Error fetching HTML:', error);
-      
-      // Fallback: Open URL in new tab with instructions
       try {
         window.open(url, '_blank');
-        
-        // Store the URL for potential manual copy-paste
         localStorage.setItem('layoutCheckerURL', url);
-        
         alert('Unable to automatically fetch the HTML due to CORS restrictions. The page has been opened in a new tab.\n\nTo get the source code:\n1. Right-click on the page\n2. Select "View Page Source" or press Ctrl+U\n3. Copy all the HTML code\n4. Paste it into the HTML content editor here');
-        
       } catch (fallbackError) {
         alert('Error: Unable to fetch the HTML content. Please copy the source code manually from the URL and paste it here.');
       }
     } finally {
-      // Reset button state
       downloadBtn.disabled = false;
       downloadBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Download';
     }
@@ -434,17 +401,17 @@
       return;
     }
 
-    // Parse krhred values in new format: attr:KRHRED_Unit_XX :
+    // Parse krhred values in new format: attr:KRHRED_Unit_XX : <next line value>
     const lines = krhredText.split('\n');
     const krhredValues = {};
-    
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       if (line.startsWith('attr:KRHRED_Unit_')) {
         const key = line.replace('attr:', '').replace(' :', '');
         const value = lines[i + 1] ? lines[i + 1].trim() : '';
         krhredValues[key] = value;
-        i++; // Skip the value line
+        i++; // skip value line
       }
     }
 
@@ -454,35 +421,54 @@
       const inputField = document.getElementById(`krhred_unit_${unitNumber}`);
       if (inputField) {
         inputField.value = krhredValues[key];
-        // Trigger input event to update background color
-        inputField.dispatchEvent(new Event('input'));
+        inputField.dispatchEvent(new Event('input')); // color update
       }
     });
+
+    saveState();
+  });
+
+  // Clear All functionality
+  clearAllBtn.addEventListener('click', () => {
+    if (!confirm('Yakin ingin menghapus semua isi?')) return;
+
+    // Clear all krhred inputs
+    document.querySelectorAll('input[id^="krhred_unit_"]').forEach(input => {
+      input.value = '';
+      input.style.backgroundColor = '';
+    });
+
+    // Clear krhred textarea and HTML editor
+    document.getElementById('krhredInput').value = '';
+    editor.setValue('');
+
+    // Clear URL & hide download button
+    document.getElementById('originalUrlInput').value = '';
+    document.getElementById('downloadBtn').style.display = 'none';
+
+    // Remove saved state
+    localStorage.removeItem('layoutChecker_state');
+    localStorage.removeItem('layoutCheckerSource');
+    localStorage.removeItem('layoutCheckerURL');
   });
 
   // Check for stored source when page loads
   window.addEventListener('load', () => {
     const storedSource = localStorage.getItem('layoutCheckerSource');
     const storedURL = localStorage.getItem('layoutCheckerURL');
-    
+
     if (storedSource) {
-      // Paste source into editor
       editor.setValue(storedSource);
-      
-      // Set URL input if available
       if (storedURL) {
         originalUrlInput.value = storedURL;
         downloadBtn.style.display = 'flex';
       }
-      
-      // Clear stored data
       localStorage.removeItem('layoutCheckerSource');
       localStorage.removeItem('layoutCheckerURL');
-      
-      // Show confirmation
       alert('Source code automatically pasted from previous page!');
     }
   });
+
   // State persistence - simple approach
   function saveState() {
     const state = {
@@ -490,13 +476,10 @@
       originalUrl: document.getElementById('originalUrlInput').value,
       krhredValues: {}
     };
-    
-    // Save all krhred input values
     const krhredInputs = document.querySelectorAll('input[id^="krhred_unit_"]');
     krhredInputs.forEach(input => {
       state.krhredValues[input.id] = input.value;
     });
-    
     localStorage.setItem('layoutChecker_state', JSON.stringify(state));
   }
 
@@ -505,25 +488,16 @@
     if (saved) {
       try {
         const state = JSON.parse(saved);
-        
-        // Restore HTML content
-        if (state.htmlContent) {
-          editor.setValue(state.htmlContent);
-        }
-        
-        // Restore original URL
+        if (state.htmlContent) { editor.setValue(state.htmlContent); }
         if (state.originalUrl) {
           document.getElementById('originalUrlInput').value = state.originalUrl;
           document.getElementById('downloadBtn').style.display = 'flex';
         }
-        
-        // Restore krhred values
         if (state.krhredValues) {
           Object.keys(state.krhredValues).forEach(inputId => {
             const input = document.getElementById(inputId);
             if (input) {
               input.value = state.krhredValues[inputId];
-              // Trigger input event to update background color
               input.dispatchEvent(new Event('input'));
             }
           });
@@ -551,13 +525,12 @@
   // Save state before leaving page
   window.addEventListener('beforeunload', saveState);
 
-  // Add back button
+  // Back button
   const backBtn = document.createElement('button');
   backBtn.innerHTML = '← Index';
   backBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:999;background:#667eea;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;';
   backBtn.onclick = () => { saveState(); window.location.href = 'index.html'; };
   document.body.appendChild(backBtn);
-
 </script>
 </body>
 </html>
