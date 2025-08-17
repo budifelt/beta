@@ -2,15 +2,10 @@
 <html lang="en">
 <head>
   <link rel="stylesheet" href="assets/css/campaign-counter.css">
-
   <link rel="stylesheet" href="assets/css/theme.css">
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Latest Campaign ID - Instant Load</title>
-  
-
-
 </head>
 <body>
   <div class="counter-container">
@@ -18,14 +13,16 @@
       Latest Campaign ID 
       <button class="edit-icon" onclick="editCampaignID()">✏️</button>
     </h1>
+
     <div class="counter-value" id="counter">
       <span id="counter-number">0</span>
       <div class="sync-status" id="sync-status">Loading...</div>
       <div class="last-updated" id="last-updated"></div>
     </div>
+
     <div class="buttons">
       <button onclick="addCampaignID()" id="add-btn">➕ Add Campaign ID</button>
-      <button onclick="resetCounter()" id="reset-btn">🔄 Reset</button>
+      <button onclick="decrementCampaignID()" id="decrement-btn">➖ Minus Campaign ID</button>
       <button onclick="refreshData()" id="refresh-btn">🔄 Sync</button>
     </div>
   </div>
@@ -35,18 +32,9 @@
     <div id="history-list"></div>
   </div>
 
-  <footer>
-    <p>Crafted with ❤️ by <a href="#" style="color: #e223b9;">/budifelt</a></p>
-  </footer>
+  <!-- Tombol Back ke Index -->
+  <button class="back-btn" onclick="window.location.href='index.html'">⌂</button>
 
-  
-
-
-<!-- Tombol Back ke Index -->
-<button class="back-btn" onclick="window.location.href='index.html'">⌂</button>
-
-
-
-<script src="assets/js/campaign-counter.js" defer></script>
+  <script src="assets/js/campaign-counter.js" defer></script>
 </body>
 </html>
