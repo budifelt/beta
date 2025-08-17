@@ -899,12 +899,7 @@ window.addEventListener('beforeunload', () => {
   app.virtualScroller.destroy();
 });
 
-// Add back button
-const backBtn = document.createElement('button');
-backBtn.innerHTML = '← Index';
-backBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:999;background:#667eea;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;';
-backBtn.onclick = () => { saveState(); window.location.href = 'index.html'; };
-document.body.appendChild(backBtn);
+
 
 </script>
 </body>
