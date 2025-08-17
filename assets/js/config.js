@@ -20,7 +20,6 @@ const fileList = fileListRoot.querySelector('ul');
 
 // ---- Helpers to control sidebar state (disabled / enabled) ----
 function markFileListNeedsReopen() {
-  // Nonaktifkan interaksi dan tampilkan placeholder agar user jelas harus klik Reopen
   fileListRoot.classList.add('needs-reopen');
   fileList.innerHTML = '';
   const placeholder = document.createElement('div');
@@ -40,43 +39,13 @@ function clearFileListDisabled() {
 }
 
 // ================================
-//  KRHRED helpers (UPDATED)
+//  KRHRED helpers (UPDATED - no notice)
 // ================================
-
-/** Small notice under the Subject input */
-function showSubjectNotice(message) {
-  const anchor = document.getElementById('subject');
-  if (!anchor) return;
-
-  let el = document.getElementById('subjectNotice');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'subjectNotice';
-    el.setAttribute('role', 'status');
-    el.style.cssText = [
-      'margin-top:6px',
-      'font-size:12px',
-      'padding:8px 10px',
-      'border-radius:8px',
-      'background:#fff3cd',
-      'color:#664d03',
-      'border:1px solid #ffe69c',
-      'display:none'
-    ].join(';');
-    anchor.insertAdjacentElement('afterend', el);
-  }
-  el.textContent = message;
-  el.style.display = 'block';
-  clearTimeout(el._hideTimer);
-  el._hideTimer = setTimeout(() => {
-    el.style.display = 'none';
-  }, 4200);
-}
 
 /**
  * Normalize ALL tokens that contain KRHRED + digits into canonical:
  *    <%[KRHRED_Unit_XX]|%>
- * IMPORTANT: Bare "KRHRED" (without digits) is NOT converted anymore.
+ * IMPORTANT: Bare "KRHRED" (without digits) is NOT converted.
  * Returns: { text: string, missingDetected: boolean }
  *   - missingDetected = true if any bare "KRHRED" without digits is found.
  */
@@ -96,44 +65,43 @@ function normalizeKrhredTokens(text) {
 
   let missingDetected = false;
 
-  // 0) Protect already-canonical so we don't re-wrap
+  // Protect already-canonical so we don't re-wrap
   const placeholders = [];
   text = text.replace(
     /<%\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*%>/gi,
     (m, num) => {
-      const canon = `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`; // safe
+      const canon = `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`;
       const key = `__KRHRED_OK_${placeholders.length}__`;
       placeholders.push([key, canon]);
       return key;
     }
   );
 
-  // 1) Fix variants missing '%' like: <[KRHRED_Unit_39]|>  →  <%[KRHRED_Unit_39]|%>
+  // Fix variants missing '%' like: <[KRHRED_Unit_39]|>  →  <%[KRHRED_Unit_39]|%>
   text = text.replace(
     /<\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
 
-  // 2) Other bracket/percent variants inside <% ... %> but malformed → canonical
+  // Other bracket/percent variants inside <% ... %> but malformed → canonical
   text = text.replace(
     /<%\s*\[?\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]?\s*(?:\|\s*)?%>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
 
-  // 3) Angle bracket only: <KRHRED_39> / <KRHRED Unit 7> → canonical
+  // Angle bracket only: <KRHRED_39> / <KRHRED Unit 7> → canonical
   text = text.replace(
     /<\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
 
-  // 4) Bare tokens with digits: KRHRED_39 / KRHRED unit 7 → canonical
+  // Bare tokens with digits: KRHRED_39 / KRHRED unit 7 → canonical
   text = text.replace(
     /(?<![<\[])\bKRHRED(?:_Unit)?(?:[_\s-]*([0-9oOlLiI]{1,2}))\b(?!\s*[%>\]])/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
 
-  // 5) Detect bare KRHRED without digits — DO NOT change, just flag
-  //    (keep original text as-is; caller will block update)
+  // Detect bare KRHRED without digits — DO NOT change, just flag
   text = text.replace(
     /(?<![<\[])\bKRHRED\b(?![_\s-]*[0-9oOlLiI]{1,2})(?!\s*[%>\]])/gi,
     (m) => {
@@ -142,7 +110,7 @@ function normalizeKrhredTokens(text) {
     }
   );
 
-  // 6) Restore protected canonical tokens
+  // Restore protected canonical tokens
   for (const [key, canon] of placeholders) {
     text = text.replaceAll(key, canon);
   }
@@ -161,12 +129,10 @@ saveFileBtn.addEventListener('click', async () => {
     return;
   }
 
-  // Disable save button and show saving indicator
   saveFileBtn.disabled = true;
   const originalText = saveFileBtn.textContent;
   saveFileBtn.textContent = 'Saving...';
 
-  // Parse current editor content to xmlDoc before saving
   const parser = new DOMParser();
   const parsedDoc = parser.parseFromString(editor.textContent, "application/xml");
   if (parsedDoc.getElementsByTagName('parsererror').length) {
@@ -209,7 +175,6 @@ linkInput.addEventListener('input', () => {
   const mismatchWarning = document.getElementById('mismatchWarning');
   const saveBtn = saveFileBtn;
 
-  // Extract digits after underscore in campaign ID (fallback last 4)
   let matchDigits = '';
   let matchDigitsLength = 0;
   const underscoreIndex = campaignId.lastIndexOf('_');
@@ -405,7 +370,7 @@ linkInput.addEventListener('input', () => {
 });
 
 // ================================
-//  Update subject button (UPDATED)
+//  Update subject button (UPDATED, no notice)
 // ================================
 updateSubjectBtn.addEventListener('click', () => {
   if (!xmlDoc) return alert("No XML loaded.");
@@ -413,11 +378,10 @@ updateSubjectBtn.addEventListener('click', () => {
   const messageContent = xmlDoc.querySelector('MessageContent');
   if (!messageContent) return;
 
-  // Original input (we will normalize other tokens but keep bare KRHRED unchanged)
   const before = subjectInput.value;
   let s = before.replace(/\s{2,}/g, ' ').trim();
 
-  // Normalize: fix every KRHRED with digits to canonical. Bare KRHRED is left as-is but flagged.
+  // Normalize KRHRED tokens with digits; leave bare KRHRED as-is but flag
   const { text: normalized, missingDetected } = normalizeKrhredTokens(s);
   s = normalized;
   subjectInput.value = s;
@@ -428,7 +392,7 @@ updateSubjectBtn.addEventListener('click', () => {
   const checkmark = document.getElementById('subjectCheckmark');
 
   if (missingDetected) {
-    // Block update to XML & saving; show X mark
+    // Block update to XML & saving; show X mark only
     if (checkmark) {
       checkmark.textContent = '✗';
       checkmark.style.color = '#d92d20';
@@ -436,7 +400,6 @@ updateSubjectBtn.addEventListener('click', () => {
     }
     subjectInput.style.borderColor = 'red';
     saveFileBtn.disabled = true;
-    showSubjectNotice('KRHRED tanpa angka terdeteksi — Subject TIDAK diupdate ke XML. Harap isi angka Unit 2 digit, mis. KRHRED_07.');
     return;
   }
 
@@ -561,7 +524,7 @@ folderOpenBtn.addEventListener('click', async () => {
           fileHandle = entry;
           const file = await entry.getFile();
           const text = await file.text();
-          editor.textContent = text;      // editor adalah <div>, bukan <textarea>
+          editor.textContent = text;
           loadXmlFromText(text);
 
           // Reset checkmarks + warning
@@ -588,7 +551,7 @@ folderOpenBtn.addEventListener('click', async () => {
 
     await buildTree(dirHandle, fileList);
     clearFileListDisabled();
-    saveState(); // Simpan status bahwa folder sudah dibuka
+    saveState();
   } catch (err) {
     alert('Error opening folder: ' + err.message);
   }
@@ -644,7 +607,6 @@ function loadState() {
       loadXmlFromText(state.xmlContent);
     }
 
-    // Jika sebelumnya pernah open folder, minta Reopen (jangan render HTML lama)
     if (state.folderOpened) {
       markFileListNeedsReopen();
     }
