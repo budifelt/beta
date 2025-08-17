@@ -23,7 +23,10 @@
       --shadow:0 10px 28px rgba(0,0,0,.30);
       --shadow-lg:0 22px 60px rgba(20,30,60,.45);
       --space:clamp(14px,2vw,24px);
-      --container:1000px;
+      --container:1100px;
+
+      /* tweak kecil buat optik pusat FA (kalau perlu ubah ke 0 / 1px) */
+      --icon-shift: 0.5px;
     }
 
     *{box-sizing:border-box}
@@ -43,7 +46,6 @@
       color:#fff;
       text-align:center;
       overflow:hidden;
-      isolation:isolate;
     }
     .hero::after{
       content:"";
@@ -64,25 +66,74 @@
       box-shadow:0 -8px 30px rgba(0,0,0,.25);
     }
     .container{max-width:var(--container);margin-inline:auto;width:100%}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%,240px), 1fr));gap:clamp(12px,2.5vw,20px)}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(min(100%,260px), 1fr));
+      gap:clamp(14px,2.8vw,24px);
+    }
 
     a.tool-card{
-      position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      text-decoration:none;background:var(--surface-elev);
-      border:1.5px solid rgba(255,255,255,.06);border-radius:var(--radius);
-      padding:clamp(18px,3.2vw,26px);min-height:160px;color:var(--text);
-      box-shadow:var(--shadow);overflow:hidden;transition:all .28s ease;
+      position:relative;
+      display:flex;
+      text-decoration:none;
+      background:var(--surface-elev);
+      border:1.5px solid rgba(255,255,255,.06);
+      border-radius:var(--radius);
+      padding:clamp(18px,3.2vw,26px);
+      min-height:170px;
+      color:var(--text);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease, background .28s ease;
     }
-    .tool-icon{
-      display:flex;align-items:center;justify-content:center;
-      font-size:2rem;width:60px;height:60px;margin-bottom:12px;
-      color:#7c89ff;background:rgba(255,255,255,0.05);border-radius:50%;
-    }
-    .tool-title{font-size:clamp(16px,2.8vw,18px);font-weight:800;margin:2px 0 6px;text-align:center;color:var(--text-strong)}
-    .tool-desc{font-size:clamp(12px,2.5vw,14px);color:var(--muted);text-align:center;max-width:28ch}
 
-    .glow{position:absolute;inset:-2px;border-radius:inherit;background:linear-gradient(45deg,var(--glow1),var(--glow2));opacity:0;pointer-events:none;transition:.28s;z-index:0;mix-blend-mode:screen}
-    .inner{position:relative;z-index:1}
+    /* pusatkan konten kartu */
+    .inner{
+      display:grid;
+      grid-auto-rows:min-content;
+      place-items:center;         /* <-- ikon, title, desc semua center */
+      text-align:center;
+      gap:8px;
+      width:100%;
+      margin:auto;                /* <-- benar2 center vertikal di kartu */
+      z-index:1;
+    }
+
+    .tool-icon{
+      display:grid;               /* pusatkan isi di lingkaran */
+      place-items:center;
+      font-size:2rem;             /* skala ikon */
+      inline-size:64px;
+      aspect-ratio:1/1;           /* lingkaran konsisten */
+      color:#7c89ff;
+      background:rgba(255,255,255,0.06);
+      border-radius:50%;
+      line-height:1;              /* hindari baseline FA */
+      transform: translateY(var(--icon-shift)); /* tweak optik */
+      margin-bottom:4px;
+    }
+    .tool-icon i{
+      line-height:1;
+      font-size:1em;              /* ikut parent */
+      display:block;
+      transform: translateY(calc(var(--icon-shift) * -1)); /* netralisir shift pada glyph */
+    }
+
+    .tool-title{
+      font-size:clamp(16px,2.8vw,18px);
+      font-weight:800;
+      color:var(--text-strong);
+      margin:0;
+      max-width:28ch;
+    }
+    .tool-desc{
+      font-size:clamp(12px,2.5vw,14px);
+      color:var(--muted);
+      margin:0;
+      max-width:32ch;
+    }
+
+    .glow{position:absolute;inset:-2px;border-radius:inherit;background:linear-gradient(45deg,var(--glow1),var(--glow2));opacity:0;pointer-events:none;transition:opacity .28s ease;z-index:0;mix-blend-mode:screen}
 
     @media (hover:hover){
       a.tool-card:hover{transform:translateY(-6px) scale(1.02);border-color:rgba(124,137,255,.55);background:#0f172a;box-shadow:var(--shadow-lg)}
@@ -121,56 +172,62 @@
             <span class="glow"></span>
             <div class="inner">
               <div class="tool-icon"><i class="fa-solid fa-gear"></i></div>
-              <div class="tool-title">Config eDM</div>
-              <div class="tool-desc">Manage and configure your application settings</div>
+              <p class="tool-title">Config eDM</p>
+              <p class="tool-desc">Manage and configure your application settings</p>
             </div>
           </a>
+
           <a class="tool-card" href="database-checker.html">
             <span class="glow"></span>
             <div class="inner">
               <div class="tool-icon"><i class="fa-solid fa-database"></i></div>
-              <div class="tool-title">Database Checker</div>
-              <div class="tool-desc">Monitor and validate your database connections</div>
+              <p class="tool-title">Database Checker</p>
+              <p class="tool-desc">Monitor and validate your database connections</p>
             </div>
           </a>
+
           <a class="tool-card" href="layout-checker.html">
             <span class="glow"></span>
             <div class="inner">
               <div class="tool-icon"><i class="fa-solid fa-ruler-combined"></i></div>
-              <div class="tool-title">Layout Checker</div>
-              <div class="tool-desc">Verify and test your layout configurations</div>
+              <p class="tool-title">Layout Checker</p>
+              <p class="tool-desc">Verify and test your layout configurations</p>
             </div>
           </a>
+
           <a class="tool-card" href="wfh-tracker.html">
             <span class="glow"></span>
             <div class="inner">
               <div class="tool-icon"><i class="fa-solid fa-house"></i></div>
-              <div class="tool-title">WFH Tracker</div>
-              <div class="tool-desc">Track work-from-home activities and productivity</div>
+              <p class="tool-title">WFH Tracker</p>
+              <p class="tool-desc">Track work-from-home activities and productivity</p>
             </div>
           </a>
+
           <a class="tool-card" href="campaign-counter.html">
             <span class="glow"></span>
             <div class="inner">
               <div class="tool-icon"><i class="fa-solid fa-chart-column"></i></div>
-              <div class="tool-title">Campaign Counter</div>
-              <div class="tool-desc">Count and track campaign metrics</div>
+              <p class="tool-title">Campaign Counter</p>
+              <p class="tool-desc">Count and track campaign metrics</p>
             </div>
           </a>
+
           <a class="tool-card" href="database-generator.html">
             <span class="glow"></span>
             <div class="inner">
               <div class="tool-icon"><i class="fa-solid fa-box-archive"></i></div>
-              <div class="tool-title">Database Generator</div>
-              <div class="tool-desc">Generate campaign database files</div>
+              <p class="tool-title">Database Generator</p>
+              <p class="tool-desc">Generate campaign database files</p>
             </div>
           </a>
+
           <a class="tool-card" href="bookmarklet.html">
             <span class="glow"></span>
             <div class="inner">
               <div class="tool-icon"><i class="fa-solid fa-bookmark"></i></div>
-              <div class="tool-title">Bookmarklet</div>
-              <div class="tool-desc">Download and manage bookmarklets</div>
+              <p class="tool-title">Bookmarklet</p>
+              <p class="tool-desc">Download and manage bookmarklets</p>
             </div>
           </a>
         </div>
