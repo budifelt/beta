@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>eDM Helper · @budifelt</title>
+  <meta name="theme-color" content="#0f172a" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root{
+      --bg1:#3940b8; --bg2:#5a3f8f;
+      --surface:#0b1220; --surface-elev:#111827;
+      --text:#e5e7eb; --text-strong:#f3f4f6; --muted:#9aa4b2;
+      --ring:#7c89ff; --glow1:#667eea; --glow2:#764ba2;
+      --radius:16px; --space:clamp(14px,2vw,24px); --container:1100px;
+      --shadow:0 10px 28px rgba(0,0,0,.30);
+      --shadow-lg:0 22px 60px rgba(20,30,60,.45);
+      --icon-shift:.5px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, Arial, sans-serif;
+      color:var(--text);
+      background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+    }
+
+    .page{min-height:100%;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+
+    .hero{
+      position:relative;
+      padding:clamp(40px,8vw,96px) var(--space);
+      color:#fff; text-align:center; overflow:hidden;
+    }
+    .hero::after{
+      content:""; position:absolute; inset:-30% -10% auto -10%; height:80%;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.12), transparent 60%);
+      z-index:-1;
+    }
+
+    /* TETRIS TITLE */
+    .title{
+      font-size:clamp(28px,5vw,56px);
+      font-weight:800; letter-spacing:.2px;
+      text-shadow:0 2px 14px rgba(0,0,0,.45);
+      margin:0 0 8px; display:inline-block; white-space:pre-wrap;
+    }
+    /* start di atas (4 langkah x 25px = 100px) */
+    .tetris-char{
+      display:inline-block;
+      opacity:0;
+      transform:translateY(-100px);
+      will-change:transform, opacity;
+      transition: transform 180ms ease-out, opacity 120ms ease-out; /* gerak singkat tiap tick */
+    }
+
+    .subtitle{font-size:clamp(14px,2.6vw,18px);opacity:.95;font-weight:500;margin:0}
+
+    /* CONTENT */
+    .content{
+      background:var(--surface);
+      margin-top:clamp(20px,3vw,32px);
+      border-top-left-radius:24px; border-top-right-radius:24px;
+      padding:calc(var(--space) + 6px) var(--space) max(24px,env(safe-area-inset-bottom));
+      box-shadow:0 -8px 30px rgba(0,0,0,.25);
+    }
+    .container{max-width:var(--container);margin-inline:auto;width:100%}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(min(100%,260px), 1fr));
+      gap:clamp(14px,2.8vw,24px);
+    }
+
+    a.tool-card{
+      position:relative; display:flex; text-decoration:none;
+      background:var(--surface-elev);
+      border:1.5px solid rgba(255,255,255,.06); border-radius:var(--radius);
+      padding:clamp(18px,3.2vw,26px); min-height:170px; color:var(--text);
+      box-shadow:var(--shadow); overflow:hidden;
+      transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease, background .28s ease;
+    }
+    .inner{
+      display:grid; grid-auto-rows:min-content; place-items:center; text-align:center;
+      gap:8px; width:100%; margin:auto; z-index:1;
+    }
+    .tool-icon{
+      display:grid; place-items:center;
+      font-size:2rem; inline-size:64px; aspect-ratio:1/1;
+      color:#7c89ff; background:rgba(255,255,255,0.06);
+      border-radius:50%; line-height:1; transform:translateY(var(--icon-shift));
+      margin-bottom:4px;
+    }
+    .tool-icon i{line-height:1;font-size:1em;display:block;transform:translateY(calc(var(--icon-shift) * -1))}
+    .tool-title{font-size:clamp(16px,2.8vw,18px);font-weight:800;color:var(--text-strong);margin:0;max-width:28ch}
+    .tool-desc{font-size:clamp(12px,2.5vw,14px);color:var(--muted);margin:0;max-width:32ch}
+
+    .glow{position:absolute;inset:-2px;border-radius:inherit;background:linear-gradient(45deg,var(--glow1),var(--glow2));opacity:0;pointer-events:none;transition:opacity .28s ease;z-index:0;mix-blend-mode:screen}
+
+    @media (hover:hover){
+      a.tool-card:hover{transform:translateY(-6px) scale(1.02);border-color:rgba(124,137,255,.55);background:#0f172a;box-shadow:var(--shadow-lg)}
+      a.tool-card:hover .glow{opacity:.55;animation:glowPulse 2s ease-in-out infinite}
+    }
+    a.tool-card:focus-visible{outline:none;border-color:var(--ring);box-shadow:0 0 0 4px rgba(124,137,255,.25),var(--shadow)}
+
+    /* Loading + transitions */
+    .loading{position:fixed;inset:0;display:grid;place-items:center;background:linear-gradient(135deg,var(--bg1),var(--bg2));z-index:999;transition:opacity .5s ease}
+    .spinner{width:52px;height:52px;border:3px solid rgba(255,255,255,.28);border-top:3px solid #fff;border-radius:50%;animation:spin 1s linear infinite}
+    .page-transition{position:fixed;inset:0;background:linear-gradient(135deg,var(--bg1),var(--bg2));transform:scaleX(0);transform-origin:left;transition:transform .5s ease;z-index:998;pointer-events:none}
+    .page-transition.active{transform:scaleX(1)}
+    .ripple{position:absolute;border-radius:50%;background:rgba(124,137,255,.22);transform:scale(0);pointer-events:none;animation:ripple .6s ease-out forwards}
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes ripple{to{transform:scale(6);opacity:0}}
+    @keyframes glowPulse{0%,100%{opacity:.55}50%{opacity:.85}}
+
+    /* Reduced motion fallback */
+    @media (prefers-reduced-motion: reduce){
+      .tetris-char{transition:none !important; transform:none !important; opacity:1 !important}
+      .spinner{animation:none}
+      .page-transition{transition:none}
+      a.tool-card{transition:none}
+    }
+  </style>
+
+<style id="theme-overrides">
+:root{
+  --bg1:#3940b8; --bg2:#5a3f8f;
+  --surface:#0b1220; --surface-elev:#111827;
+  --text:#e5e7eb; --text-strong:#f3f4f6; --muted:#9aa4b2;
+  --ring:#7c89ff; --glow1:#667eea; --glow2:#764ba2;
+  --radius:16px; --space:clamp(14px,2vw,24px); --container:1100px;
+  --shadow:0 10px 28px rgba(0,0,0,.30);
+  --shadow-lg:0 22px 60px rgba(20,30,60,.45);
+}
+/* Base */
+html,body{height:100%}
+body{
+  color:var(--text) !important;
+  background: linear-gradient(135deg, var(--bg1), var(--bg2)) !important;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, Arial, sans-serif !important;
+}
+/* Common containers */
+.container, #mainContent, .calendar, .counter-container, .instructions, .history-container,
+#sidebar, #fileList, #databaseContent, #resultsContainer, #krhredResults, #krhredDetails,
+#contentContainer, #editor, textarea, input[type="text"], input[type="search"], select, .virtual-scroll-container {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: rgba(255,255,255,.08) !important;
+  box-shadow: var(--shadow);
+}
+/* Cards/panels subtle elevation */
+.container, .calendar, .counter-container, #mainContent, .instructions, .history-container{
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+.container::after, .calendar::after, .counter-container::after, #mainContent::after {
+  content:""; position:absolute; inset:-2px; border-radius:inherit;
+  background:linear-gradient(45deg,var(--glow1),var(--glow2));
+  opacity:.18; pointer-events:none; mix-blend-mode:screen;
+}
+/* Headings & text */
+h1,h2,h3,h4,h5 { color: var(--text-strong) !important; }
+p, label, .sync-status, .last-updated, .text-slate-400 { color: var(--muted) !important; }
+/* Buttons */
+button, .bookmarklet {
+  background: var(--surface-elev) !important;
+  color: var(--text) !important;
+  border:1.5px solid rgba(255,255,255,.08) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+button:hover, .bookmarklet:hover {
+  transform: translateY(-2px);
+  background:#0f172a !important;
+  border-color: rgba(124,137,255,.55) !important;
+  box-shadow: var(--shadow-lg);
+}
+/* Links */
+a { color: #9bb1ff !important; }
+/* Inputs & textareas */
+input, textarea, select {
+  border-radius: var(--radius) !important;
+  background: #0f172a !important;
+  color: var(--text) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+}
+input::placeholder, textarea::placeholder { color: #9aa4b2 !important; }
+/* Tables */
+table { color: var(--text) !important; }
+th, td { border-color: rgba(255,255,255,.10) !important; }
+thead { background: #0f172a !important; }
+/* Specific elements in provided files */
+/* Database Checker */
+#databaseContent { background:#0f172a !important; }
+#krhredResults, #krhredDetails { background:#111827 !important; }
+/* WFH Tracker calendar day colors */
+.day.today { background:#64ffda !important; color:#0a192f !important; }
+.day.wfh { background:#4caf50 !important; color:#fff !important; }
+.day.other { background:#ff9800 !important; color:#fff !important; }
+.day.weekend { background:#ef4444 !important; color:#fff !important; }
+/* Bookmarklet page container */
+body > .container { background: var(--surface) !important; }
+/* Counter */
+.buttons button:disabled { opacity:.5 !important; }
+/* Scroll containers borders subtle */
+#sidebar, #fileList { box-shadow: none !important; }
+/* Keep selection visible */
+::selection { background: rgba(124,137,255,.35); color:#fff; }
+</style>
+</head>
+<body>
+  <!-- Loading -->
+  <div class="loading" id="loading"><div class="spinner"></div></div>
+  <!-- Transition -->
+  <div class="page-transition" id="transition"></div>
+
+  <main class="page">
+    <header class="hero">
+      <h1 class="title" id="tetrisTitle">eDM Helper</h1>
+      <p class="subtitle">@budifelt</p>
+    </header>
+
+    <section class="content" aria-label="Tools">
+      <div class="container">
+        <div class="grid">
+          <a class="tool-card" href="config.html">
+            <span class="glow"></span>
+            <div class="inner">
+              <div class="tool-icon"><i class="fa-solid fa-gear"></i></div>
+              <p class="tool-title">Config eDM</p>
+              <p class="tool-desc">Manage and configure your application settings</p>
+            </div>
+          </a>
+          <a class="tool-card" href="database-checker.html">
+            <span class="glow"></span>
+            <div class="inner">
+              <div class="tool-icon"><i class="fa-solid fa-database"></i></div>
+              <p class="tool-title">Database Checker</p>
+              <p class="tool-desc">Monitor and validate your database connections</p>
+            </div>
+          </a>
+          <a class="tool-card" href="layout-checker.html">
+            <span class="glow"></span>
+            <div class="inner">
+              <div class="tool-icon"><i class="fa-solid fa-ruler-combined"></i></div>
+              <p class="tool-title">Layout Checker</p>
+              <p class="tool-desc">Verify and test your layout configurations</p>
+            </div>
+          </a>
+          <a class="tool-card" href="wfh-tracker.html">
+            <span class="glow"></span>
+            <div class="inner">
+              <div class="tool-icon"><i class="fa-solid fa-house"></i></div>
+              <p class="tool-title">WFH Tracker</p>
+              <p class="tool-desc">Track work-from-home activities and productivity</p>
+            </div>
+          </a>
+          <a class="tool-card" href="campaign-counter.html">
+            <span class="glow"></span>
+            <div class="inner">
+              <div class="tool-icon"><i class="fa-solid fa-chart-column"></i></div>
+              <p class="tool-title">Campaign Counter</p>
+              <p class="tool-desc">Count and track campaign metrics</p>
+            </div>
+          </a>
+          <a class="tool-card" href="database-generator.html">
+            <span class="glow"></span>
+            <div class="inner">
+              <div class="tool-icon"><i class="fa-solid fa-box-archive"></i></div>
+              <p class="tool-title">Database Generator</p>
+              <p class="tool-desc">Generate campaign database files</p>
+            </div>
+          </a>
+          <a class="tool-card" href="bookmarklet.html">
+            <span class="glow"></span>
+            <div class="inner">
+              <div class="tool-icon"><i class="fa-solid fa-bookmark"></i></div>
+              <p class="tool-title">Bookmarklet</p>
+              <p class="tool-desc">Download and manage bookmarklets</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Loading overlay
+    window.addEventListener('load', () => {
+      const loading=document.getElementById('loading');
+      loading.style.opacity='0';
+      setTimeout(()=>loading.style.display='none',500);
+    });
+
+    // TETRIS 4 langkah per huruf (1s per langkah)
+    (function(){
+      const title = document.getElementById('tetrisTitle');
+      if(!title) return;
+      const txt = title.textContent;
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Build spans
+      title.textContent = '';
+      const nodes = [];
+      [...txt].forEach(ch=>{
+        const span=document.createElement('span');
+        span.className='tetris-char';
+        span.textContent=ch;
+        if(ch===' '){
+          span.style.transform='none';
+          span.style.opacity='1';
+        }
+        title.appendChild(span);
+        nodes.push(span);
+      });
+
+      if(prefersReduced){
+        nodes.forEach(n=>{ n.style.transform='none'; n.style.opacity='1'; });
+        return;
+      }
+
+      // Jatuhkan satu huruf dengan 4 tick (1s per tick)
+      function dropChar(node){
+        return new Promise(resolve=>{
+          if(node.textContent===' '){ resolve(); return; }
+          let steps = 0;
+          const startY = -100;      // 4 langkah x 25px
+          node.style.opacity = '1';
+          node.style.transform = `translateY(${startY}px)`;
+
+          const interval = setInterval(()=>{
+            steps++;
+            const y = startY + steps*25; // -100, -75, -50, -25, 0
+            node.style.transform = `translateY(${Math.min(y,0)}px)`;
+            if(steps >= 4){
+              clearInterval(interval);
+              node.style.transform = 'translateY(0)'; // lock
+              resolve();
+            }
+          }, 70); // 1 detik per langkah
+        });
+      }
+
+      // Jalankan berurutan per huruf
+      (async ()=>{
+        for(const node of nodes){
+          await dropChar(node);
+        }
+      })();
+    })();
+
+    // Card ripple + page transition
+    const transitionEl=document.getElementById('transition');
+    document.querySelectorAll('a.tool-card').forEach(card=>{
+      card.addEventListener('click',e=>{
+        if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0) return;
+        e.preventDefault();
+        const href=card.getAttribute('href');
+        const rect=card.getBoundingClientRect();
+        const size=Math.max(rect.width,rect.height);
+        const ripple=document.createElement('span');
+        ripple.className='ripple';
+        ripple.style.width=ripple.style.height=size+'px';
+        const x=(e.clientX??(rect.left+rect.width/2))-rect.left-size/2;
+        const y=(e.clientY??(rect.top+rect.height/2))-rect.top-size/2;
+        ripple.style.left=x+'px';ripple.style.top=y+'px';
+        card.appendChild(ripple);
+        setTimeout(()=>{transitionEl.classList.add('active');setTimeout(()=>window.location.href=href,480)},180);
+      });
+      card.addEventListener('animationend',ev=>{if(ev.target.classList.contains('ripple'))ev.target.remove();});
+    });
+  </script>
+</body>
+</html>
