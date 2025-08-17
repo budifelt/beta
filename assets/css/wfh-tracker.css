@@ -1,0 +1,202 @@
+
+/* ---- Extracted styles from inline <style> blocks ---- */
+body {
+      font-family: 'Arial', sans-serif;
+      background: #0a192f;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .star {
+      position: absolute;
+      background: #fff;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-100%);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
+
+    .calendar {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      width: 400px; /* Changed from 340px to 400px */
+      text-align: center;
+      z-index: 1;
+      transform: scale(1.3);
+      transform-origin: center;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+
+    .calendar-header button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .calendar-header button:hover {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+
+    .calendar-header button svg {
+      width: 24px;
+      height: 24px;
+      fill: #64ffda;
+      transition: fill 0.2s ease;
+    }
+
+    .calendar-header button:hover svg {
+      fill: #ff9800;
+    }
+
+    .calendar h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #fff;
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .day {
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      user-select: none;
+    }
+
+    .day:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .day.today {
+      background: #64ffda;
+      color: #0a192f;
+    }
+
+    .day.wfh {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .day.other {
+      background: #ff9800;
+      color: #fff;
+    }
+
+    .day.weekend {
+      background: #f44336;
+      color: #fff;
+      cursor: not-allowed;
+    }
+    .day.holiday {
+      background: #f44336;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .day.empty {
+      visibility: hidden;
+    }
+
+    .day-number {
+      font-size: 1rem;
+      font-weight: bold;
+      user-select: none;
+    }
+    
+    .day-name {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.7);
+      user-select: none;
+    }
+    .day.weekend .day-name {
+      color: #fff;
+    }
+
+.day.other-month {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .day.other-month:hover {
+        background: transparent;
+      }
+
+.back-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+}
+.back-btn:hover {
+  background: #444;
+  transform: scale(1.08);
+}

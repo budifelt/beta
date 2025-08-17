@@ -1,0 +1,196 @@
+/* Global theme overrides consolidated */
+
+/* ---- Extracted theme-overrides from config.html ---- */
+:root{
+  --bg1:#3940b8; --bg2:#5a3f8f;
+  --surface:#0b1220; --surface-elev:#111827;
+  --text:#e5e7eb; --text-strong:#f3f4f6; --muted:#9aa4b2;
+  --ring:#7c89ff; --glow1:#667eea; --glow2:#764ba2;
+  --radius:16px; --space:clamp(14px,2vw,24px); --container:1100px;
+  --shadow:0 10px 28px rgba(0,0,0,.30);
+  --shadow-lg:0 22px 60px rgba(20,30,60,.45);
+}
+/* Base */
+html,body{height:100%}
+body{
+  color:var(--text) !important;
+  background: linear-gradient(135deg, var(--bg1), var(--bg2)) !important;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, Arial, sans-serif !important;
+}
+/* Common containers */
+.container, #mainContent, .calendar, .counter-container, .instructions, .history-container,
+#sidebar, #fileList, #databaseContent, #resultsContainer, #krhredResults, #krhredDetails,
+#contentContainer, #editor, textarea, input[type="text"], input[type="search"], select, .virtual-scroll-container {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: rgba(255,255,255,.08) !important;
+  box-shadow: var(--shadow);
+}
+
+#mainContent {
+  background: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
+  margin: 20px !important;
+}
+
+/* Cards/panels subtle elevation */
+.container, .calendar, .counter-container, #mainContent, .instructions, .history-container{
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+
+#mainContent {
+  background: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
+  margin: 20px !important;
+}
+
+.container::after, .calendar::after, .counter-container::after, #mainContent::after {
+  content:""; position:absolute; inset:-2px; border-radius:inherit;
+  background:linear-gradient(45deg,var(--glow1),var(--glow2));
+  opacity:.18; pointer-events:none; mix-blend-mode:screen;
+}
+
+#mainContent {
+  background: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
+  margin: 20px !important;
+}
+
+/* Headings & text */
+h1,h2,h3,h4,h5 { color: var(--text-strong) !important; }
+p, label, .sync-status, .last-updated, .text-slate-400 { color: var(--muted) !important; }
+/* Buttons */
+button, .bookmarklet {
+  background: var(--surface-elev) !important;
+  color: var(--text) !important;
+  border:1.5px solid rgba(255,255,255,.08) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+button:hover, .bookmarklet:hover {
+  transform: translateY(-2px);
+  background:#0f172a !important;
+  border-color: rgba(124,137,255,.55) !important;
+  box-shadow: var(--shadow-lg);
+}
+/* Links */
+a { color: #9bb1ff !important; }
+/* Inputs & textareas */
+input, textarea, select {
+  border-radius: var(--radius) !important;
+  background: #0f172a !important;
+  color: var(--text) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+}
+input::placeholder, textarea::placeholder { color: #9aa4b2 !important; }
+/* Tables */
+table { color: var(--text) !important; }
+th, td { border-color: rgba(255,255,255,.10) !important; }
+thead { background: #0f172a !important; }
+/* Specific: config page pieces */
+#sidebar { background: var(--surface) !important; }
+#mainContent { background: var(--surface) !important; }
+
+#mainContent {
+  background: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
+  margin: 20px !important;
+}
+
+/* ---- Extracted theme-overrides from bookmarklet.html ---- */
+:root{
+  --bg1:#3940b8; --bg2:#5a3f8f;
+  --surface:#0b1220; --surface-elev:#111827;
+  --text:#e5e7eb; --text-strong:#f3f4f6; --muted:#9aa4b2;
+  --ring:#7c89ff; --glow1:#667eea; --glow2:#764ba2;
+  --radius:16px; --space:clamp(14px,2vw,24px); --container:1100px;
+  --shadow:0 10px 28px rgba(0,0,0,.30);
+  --shadow-lg:0 22px 60px rgba(20,30,60,.45);
+}
+/* Base */
+html,body{height:100%}
+body{
+  color:var(--text) !important;
+  background: linear-gradient(135deg, var(--bg1), var(--bg2)) !important;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, Arial, sans-serif !important;
+}
+/* Common containers */
+.container, #mainContent, .calendar, .counter-container, .instructions, .history-container,
+#sidebar, #fileList, #databaseContent, #resultsContainer, #krhredResults, #krhredDetails,
+#contentContainer, #editor, textarea, input[type="text"], input[type="search"], select, .virtual-scroll-container {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: rgba(255,255,255,.08) !important;
+  box-shadow: var(--shadow);
+}
+/* Cards/panels subtle elevation */
+.container, .calendar, .counter-container, #mainContent, .instructions, .history-container{
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+.container::after, .calendar::after, .counter-container::after, #mainContent::after {
+  content:""; position:absolute; inset:-2px; border-radius:inherit;
+  background:linear-gradient(45deg,var(--glow1),var(--glow2));
+  opacity:.18; pointer-events:none; mix-blend-mode:screen;
+}
+/* Headings & text */
+h1,h2,h3,h4,h5 { color: var(--text-strong) !important; }
+p, label, .sync-status, .last-updated, .text-slate-400 { color: var(--muted) !important; }
+/* Buttons */
+button, .bookmarklet {
+  background: var(--surface-elev) !important;
+  color: var(--text) !important;
+  border:1.5px solid rgba(255,255,255,.08) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+button:hover, .bookmarklet:hover {
+  transform: translateY(-2px);
+  background:#0f172a !important;
+  border-color: rgba(124,137,255,.55) !important;
+  box-shadow: var(--shadow-lg);
+}
+/* Links */
+a { color: #9bb1ff !important; }
+/* Inputs & textareas */
+input, textarea, select {
+  border-radius: var(--radius) !important;
+  background: #0f172a !important;
+  color: var(--text) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+}
+input::placeholder, textarea::placeholder { color: #9aa4b2 !important; }
+/* Tables */
+table { color: var(--text) !important; }
+th, td { border-color: rgba(255,255,255,.10) !important; }
+thead { background: #0f172a !important; }
+/* Specific elements in provided files */
+/* Database Checker */
+#databaseContent { background:#0f172a !important; }
+#krhredResults, #krhredDetails { background:#111827 !important; }
+/* WFH Tracker calendar day colors */
+.day.today { background:#64ffda !important; color:#0a192f !important; }
+.day.wfh { background:#4caf50 !important; color:#fff !important; }
+.day.other { background:#ff9800 !important; color:#fff !important; }
+.day.weekend { background:#ef4444 !important; color:#fff !important; }
+/* Bookmarklet page container */
+body > .container { background: var(--surface) !important; }
+/* Counter */
+.buttons button:disabled { opacity:.5 !important; }
+/* Scroll containers borders subtle */
+#sidebar, #fileList { box-shadow: none !important; }
+/* Keep selection visible */
+::selection { background: rgba(124,137,255,.35); color:#fff; }
