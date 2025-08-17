@@ -5,22 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>eDM Helper · @budifelt</title>
   <meta name="theme-color" content="#0f172a" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root{
-      /* Primary gradient (sedikit lebih gelap) */
-      --bg1:#3940b8; /* turunan dari #667eea tapi digelapkan */
-      --bg2:#5a3f8f; /* turunan dari #764ba2 tapi digelapkan */
-
-      /* Dark content area & card */
-      --surface:#0b1220;       /* konten bawah */
-      --surface-elev:#111827;  /* kartu */
-      --text:#e5e7eb;          /* teks utama */
+      --bg1:#3940b8;
+      --bg2:#5a3f8f;
+      --surface:#0b1220;
+      --surface-elev:#111827;
+      --text:#e5e7eb;
       --text-strong:#f3f4f6;
-      --muted:#9aa4b2;         /* teks deskripsi */
-      --ring:#7c89ff;          /* ring fokus */
+      --muted:#9aa4b2;
+      --ring:#7c89ff;
       --glow1:#667eea;
       --glow2:#764ba2;
-
       --radius:16px;
       --shadow:0 10px 28px rgba(0,0,0,.30);
       --shadow-lg:0 22px 60px rgba(20,30,60,.45);
@@ -35,17 +33,10 @@
       font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
       color:var(--text);
       background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
-      -webkit-font-smoothing:antialiased;
     }
 
-    .page{
-      min-height:100%;
-      display:flex;
-      flex-direction:column;
-      padding-bottom:env(safe-area-inset-bottom);
-    }
+    .page{min-height:100%;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
 
-    /* HERO */
     .hero{
       position:relative;
       padding:clamp(40px,8vw,96px) var(--space);
@@ -61,21 +52,9 @@
       background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.12), transparent 60%);
       z-index:-1;
     }
-    .title{
-      font-size:clamp(28px,5vw,56px);
-      font-weight:800;
-      letter-spacing:.2px;
-      text-shadow:0 2px 14px rgba(0,0,0,.45);
-      margin:0 0 8px;
-    }
-    .subtitle{
-      font-size:clamp(14px,2.6vw,18px);
-      opacity:.95;
-      font-weight:500;
-      margin:0;
-    }
+    .title{font-size:clamp(28px,5vw,56px);font-weight:800;text-shadow:0 2px 14px rgba(0,0,0,.45);margin:0 0 8px}
+    .subtitle{font-size:clamp(14px,2.6vw,18px);opacity:.95;font-weight:500;margin:0}
 
-    /* CONTENT */
     .content{
       background:var(--surface);
       margin-top:clamp(20px,3vw,32px);
@@ -84,148 +63,53 @@
       padding:calc(var(--space) + 6px) var(--space) max(24px,env(safe-area-inset-bottom));
       box-shadow:0 -8px 30px rgba(0,0,0,.25);
     }
-
-    .container{max-width:var(--container); margin-inline:auto; width:100%}
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(min(100%,240px), 1fr));
-      gap:clamp(12px,2.5vw,20px);
-    }
+    .container{max-width:var(--container);margin-inline:auto;width:100%}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%,240px), 1fr));gap:clamp(12px,2.5vw,20px)}
 
     a.tool-card{
-      position:relative;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      text-decoration:none;
-      background:var(--surface-elev);
-      border:1.5px solid rgba(255,255,255,.06);
-      border-radius:var(--radius);
-      padding:clamp(18px,3.2vw,26px);
-      min-height:150px;
-      color:var(--text);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-      will-change:transform;
-      transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease, background .28s ease;
+      position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      text-decoration:none;background:var(--surface-elev);
+      border:1.5px solid rgba(255,255,255,.06);border-radius:var(--radius);
+      padding:clamp(18px,3.2vw,26px);min-height:160px;color:var(--text);
+      box-shadow:var(--shadow);overflow:hidden;transition:all .28s ease;
     }
-
     .tool-icon{
-      font-size:clamp(24px,5vw,36px);
-      margin-bottom:10px;
-      line-height:1;
-      transform:translateZ(0);
-      filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));
+      display:flex;align-items:center;justify-content:center;
+      font-size:2rem;width:60px;height:60px;margin-bottom:12px;
+      color:#7c89ff;background:rgba(255,255,255,0.05);border-radius:50%;
     }
-    .tool-title{
-      font-size:clamp(16px,2.8vw,18px);
-      font-weight:800;
-      margin:2px 0 6px;
-      text-align:center;
-      color:var(--text-strong);
-      letter-spacing:.2px;
-    }
-    .tool-desc{
-      font-size:clamp(12px,2.5vw,14px);
-      color:var(--muted);
-      text-align:center;
-      max-width:28ch;
-    }
+    .tool-title{font-size:clamp(16px,2.8vw,18px);font-weight:800;margin:2px 0 6px;text-align:center;color:var(--text-strong)}
+    .tool-desc{font-size:clamp(12px,2.5vw,14px);color:var(--muted);text-align:center;max-width:28ch}
 
-    .glow{
-      position:absolute; inset:-2px;
-      border-radius:inherit;
-      background:linear-gradient(45deg, var(--glow1), var(--glow2));
-      opacity:0; pointer-events:none;
-      transition:opacity .28s ease;
-      z-index:0;
-      mix-blend-mode:screen;
-      filter:blur(0.5px);
-    }
-    .inner{ position:relative; z-index:1; }
+    .glow{position:absolute;inset:-2px;border-radius:inherit;background:linear-gradient(45deg,var(--glow1),var(--glow2));opacity:0;pointer-events:none;transition:.28s;z-index:0;mix-blend-mode:screen}
+    .inner{position:relative;z-index:1}
 
     @media (hover:hover){
-      a.tool-card:hover{
-        transform:translateY(-6px) scale(1.02);
-        border-color:rgba(124,137,255,.55);
-        background:#0f172a; /* sedikit lebih terang dari surface-elev saat hover */
-        box-shadow:var(--shadow-lg);
-      }
-      a.tool-card:hover .glow{opacity:.55; animation:glowPulse 2s ease-in-out infinite}
+      a.tool-card:hover{transform:translateY(-6px) scale(1.02);border-color:rgba(124,137,255,.55);background:#0f172a;box-shadow:var(--shadow-lg)}
+      a.tool-card:hover .glow{opacity:.55;animation:glowPulse 2s ease-in-out infinite}
     }
+    a.tool-card:focus-visible{outline:none;border-color:var(--ring);box-shadow:0 0 0 4px rgba(124,137,255,.25),var(--shadow)}
 
-    a.tool-card:focus-visible{
-      outline:none;
-      border-color:var(--ring);
-      box-shadow:0 0 0 4px rgba(124,137,255,.25), var(--shadow);
-      background:#0f172a;
-    }
+    .loading{position:fixed;inset:0;display:grid;place-items:center;background:linear-gradient(135deg,var(--bg1),var(--bg2));z-index:999;transition:opacity .5s ease}
+    .spinner{width:52px;height:52px;border:3px solid rgba(255,255,255,.28);border-top:3px solid #fff;border-radius:50%;animation:spin 1s linear infinite}
 
-    /* Loading */
-    .loading{
-      position:fixed; inset:0;
-      display:grid; place-items:center;
-      background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
-      z-index:999;
-      transition:opacity .5s ease;
-    }
-    .spinner{
-      width:52px; height:52px;
-      border:3px solid rgba(255,255,255,.28);
-      border-top:3px solid #fff; border-radius:50%;
-      animation:spin 1s linear infinite;
-    }
+    .page-transition{position:fixed;inset:0;background:linear-gradient(135deg,var(--bg1),var(--bg2));transform:scaleX(0);transform-origin:left;transition:transform .5s ease;z-index:998;pointer-events:none}
+    .page-transition.active{transform:scaleX(1)}
+    .ripple{position:absolute;border-radius:50%;background:rgba(124,137,255,.22);transform:scale(0);pointer-events:none;animation:ripple .6s ease-out forwards}
 
-    /* Transition */
-    .page-transition{
-      position:fixed; inset:0;
-      background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
-      transform:scaleX(0);
-      transform-origin:left;
-      transition:transform .5s ease;
-      z-index:998;
-      pointer-events:none;
-    }
-    .page-transition.active{ transform:scaleX(1) }
-
-    /* Ripple */
-    .ripple{
-      position:absolute; border-radius:50%;
-      background:rgba(124,137,255,.22);
-      transform:scale(0);
-      pointer-events:none;
-      animation:ripple .6s ease-out forwards;
-      filter:blur(.2px);
-    }
-
-    /* Animations */
-    @keyframes spin{ to{transform:rotate(360deg)} }
-    @keyframes ripple{ to{ transform:scale(6); opacity:0 } }
-    @keyframes glowPulse{ 0%,100%{ opacity:.55 } 50%{ opacity:.85 } }
-
-    @media (prefers-reduced-motion: reduce){
-      .spinner{animation:none}
-      .page-transition{transition:none}
-      a.tool-card{transition:none}
-      .glow{animation:none}
-    }
-
-    @media (max-width:360px){ .tool-desc{ max-width:100% } }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes ripple{to{transform:scale(6);opacity:0}}
+    @keyframes glowPulse{0%,100%{opacity:.55}50%{opacity:.85}}
   </style>
 </head>
 <body>
   <!-- Loading -->
-  <div class="loading" id="loading" aria-live="polite" aria-busy="true">
-    <div class="spinner" role="status" aria-label="Loading"></div>
-  </div>
-
-  <!-- Page Transition -->
+  <div class="loading" id="loading"><div class="spinner"></div></div>
+  <!-- Transition -->
   <div class="page-transition" id="transition"></div>
 
   <main class="page">
-    <header class="hero" role="banner">
+    <header class="hero">
       <h1 class="title">eDM Helper</h1>
       <p class="subtitle">@budifelt</p>
     </header>
@@ -233,66 +117,60 @@
     <section class="content" aria-label="Tools">
       <div class="container">
         <div class="grid">
-          <a class="tool-card" href="config.html" aria-label="Open Config eDM">
-            <span class="glow" aria-hidden="true"></span>
+          <a class="tool-card" href="config.html">
+            <span class="glow"></span>
             <div class="inner">
-              <span class="tool-icon" aria-hidden="true">⚙️</span>
+              <div class="tool-icon"><i class="fa-solid fa-gear"></i></div>
               <div class="tool-title">Config eDM</div>
               <div class="tool-desc">Manage and configure your application settings</div>
             </div>
           </a>
-
-          <a class="tool-card" href="database-checker.html" aria-label="Open Database Checker">
-            <span class="glow" aria-hidden="true"></span>
+          <a class="tool-card" href="database-checker.html">
+            <span class="glow"></span>
             <div class="inner">
-              <span class="tool-icon" aria-hidden="true">🗄️</span>
+              <div class="tool-icon"><i class="fa-solid fa-database"></i></div>
               <div class="tool-title">Database Checker</div>
               <div class="tool-desc">Monitor and validate your database connections</div>
             </div>
           </a>
-
-          <a class="tool-card" href="layout-checker.html" aria-label="Open Layout Checker">
-            <span class="glow" aria-hidden="true"></span>
+          <a class="tool-card" href="layout-checker.html">
+            <span class="glow"></span>
             <div class="inner">
-              <span class="tool-icon" aria-hidden="true">📐</span>
+              <div class="tool-icon"><i class="fa-solid fa-ruler-combined"></i></div>
               <div class="tool-title">Layout Checker</div>
               <div class="tool-desc">Verify and test your layout configurations</div>
             </div>
           </a>
-
-          <a class="tool-card" href="wfh-tracker.html" aria-label="Open WFH Tracker">
-            <span class="glow" aria-hidden="true"></span>
+          <a class="tool-card" href="wfh-tracker.html">
+            <span class="glow"></span>
             <div class="inner">
-              <span class="tool-icon" aria-hidden="true">🏠</span>
+              <div class="tool-icon"><i class="fa-solid fa-house"></i></div>
               <div class="tool-title">WFH Tracker</div>
               <div class="tool-desc">Track work-from-home activities and productivity</div>
             </div>
           </a>
-
-          <a class="tool-card" href="campaign-counter.html" aria-label="Open Campaign ID Counter">
-            <span class="glow" aria-hidden="true"></span>
+          <a class="tool-card" href="campaign-counter.html">
+            <span class="glow"></span>
             <div class="inner">
-              <span class="tool-icon" aria-hidden="true">📊</span>
-              <div class="tool-title">Campaign ID Counter</div>
+              <div class="tool-icon"><i class="fa-solid fa-chart-column"></i></div>
+              <div class="tool-title">Campaign Counter</div>
               <div class="tool-desc">Count and track campaign metrics</div>
             </div>
           </a>
-
-          <a class="tool-card" href="database-generator.html" aria-label="Open Database Generator">
-            <span class="glow" aria-hidden="true"></span>
+          <a class="tool-card" href="database-generator.html">
+            <span class="glow"></span>
             <div class="inner">
-              <span class="tool-icon" aria-hidden="true">🗃️</span>
+              <div class="tool-icon"><i class="fa-solid fa-box-archive"></i></div>
               <div class="tool-title">Database Generator</div>
-              <div class="tool-desc">Generate campaign database files (CustMast, CustPref, CustSubs, CustAttr)</div>
+              <div class="tool-desc">Generate campaign database files</div>
             </div>
           </a>
-
-          <a class="tool-card" href="bookmarklet.html" aria-label="Open Bookmarklet">
-            <span class="glow" aria-hidden="true"></span>
+          <a class="tool-card" href="bookmarklet.html">
+            <span class="glow"></span>
             <div class="inner">
-              <span class="tool-icon" aria-hidden="true">🔖</span>
+              <div class="tool-icon"><i class="fa-solid fa-bookmark"></i></div>
               <div class="tool-title">Bookmarklet</div>
-              <div class="tool-desc">Download and manage bookmarklets for quick access</div>
+              <div class="tool-desc">Download and manage bookmarklets</div>
             </div>
           </a>
         </div>
@@ -301,72 +179,31 @@
   </main>
 
   <script>
-    // Loading overlay fade out
+    // Loading overlay
     window.addEventListener('load', () => {
-      const loading = document.getElementById('loading');
-      loading.style.opacity = '0';
-      setTimeout(()=> loading.style.display = 'none', 500);
+      const loading=document.getElementById('loading');
+      loading.style.opacity='0';
+      setTimeout(()=>loading.style.display='none',500);
     });
 
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const transitionEl = document.getElementById('transition');
-
-    document.querySelectorAll('a.tool-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-
+    const transitionEl=document.getElementById('transition');
+    document.querySelectorAll('a.tool-card').forEach(card=>{
+      card.addEventListener('click',e=>{
+        if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0) return;
         e.preventDefault();
-        const href = card.getAttribute('href');
-
-        // Ripple
-        const rect = card.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        const ripple = document.createElement('span');
-        ripple.className = 'ripple';
-        ripple.style.width = ripple.style.height = size + 'px';
-        const x = (e.clientX ?? (rect.left + rect.width/2)) - rect.left - size/2;
-        const y = (e.clientY ?? (rect.top + rect.height/2)) - rect.top - size/2;
-        ripple.style.left = x + 'px';
-        ripple.style.top = y + 'px';
+        const href=card.getAttribute('href');
+        const rect=card.getBoundingClientRect();
+        const size=Math.max(rect.width,rect.height);
+        const ripple=document.createElement('span');
+        ripple.className='ripple';
+        ripple.style.width=ripple.style.height=size+'px';
+        const x=(e.clientX??(rect.left+rect.width/2))-rect.left-size/2;
+        const y=(e.clientY??(rect.top+rect.height/2))-rect.top-size/2;
+        ripple.style.left=x+'px';ripple.style.top=y+'px';
         card.appendChild(ripple);
-
-        const go = () => window.location.href = href;
-        if (prefersReduced){
-          setTimeout(go, 180);
-        } else {
-          setTimeout(() => {
-            transitionEl.classList.add('active');
-            setTimeout(go, 480);
-          }, 180);
-        }
+        setTimeout(()=>{transitionEl.classList.add('active');setTimeout(()=>window.location.href=href,480)},180);
       });
-
-      card.addEventListener('animationend', (ev)=>{
-        if (ev.target.classList.contains('ripple')) ev.target.remove();
-      });
-    });
-
-    // Arrow-key navigation (tidak hijack Tab)
-    const cards = Array.from(document.querySelectorAll('a.tool-card'));
-    const cols = () => {
-      const first = cards[0]?.getBoundingClientRect();
-      const rowY = first?.top ?? 0;
-      return cards.filter(c => Math.abs(c.getBoundingClientRect().top - rowY) < 5).length || 1;
-    };
-    document.addEventListener('keydown', (e)=>{
-      const idx = cards.indexOf(document.activeElement);
-      if (idx === -1) return;
-      const c = cols();
-      let next = null;
-      if (e.key === 'ArrowRight'){ next = idx + 1; }
-      if (e.key === 'ArrowLeft'){ next = idx - 1; }
-      if (e.key === 'ArrowDown'){ next = idx + c; }
-      if (e.key === 'ArrowUp'){ next = idx - c; }
-      if (next != null){
-        e.preventDefault();
-        next = Math.min(Math.max(next, 0), cards.length - 1);
-        cards[next].focus();
-      }
+      card.addEventListener('animationend',ev=>{if(ev.target.classList.contains('ripple'))ev.target.remove();});
     });
   </script>
 </body>
