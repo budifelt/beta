@@ -182,6 +182,15 @@
     background-color: #fff0f0;
     color: #222222;
   }
+
+#mainContent {
+  background: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
+  margin: 20px !important;
+}
+
   label {
     display: block;
     margin-top: 15px;
@@ -296,6 +305,7 @@
   }
 </style>
 
+
 <style id="theme-overrides">
 :root{
   --bg1:#3940b8; --bg2:#5a3f8f;
@@ -322,17 +332,44 @@ body{
   border-color: rgba(255,255,255,.08) !important;
   box-shadow: var(--shadow);
 }
+
+#mainContent {
+  background: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
+  margin: 20px !important;
+}
+
 /* Cards/panels subtle elevation */
 .container, .calendar, .counter-container, #mainContent, .instructions, .history-container{
   border-radius: var(--radius);
   position: relative;
   overflow: hidden;
 }
+
+#mainContent {
+  background: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
+  margin: 20px !important;
+}
+
 .container::after, .calendar::after, .counter-container::after, #mainContent::after {
   content:""; position:absolute; inset:-2px; border-radius:inherit;
   background:linear-gradient(45deg,var(--glow1),var(--glow2));
   opacity:.18; pointer-events:none; mix-blend-mode:screen;
 }
+
+#mainContent {
+  background: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
+  margin: 20px !important;
+}
+
 /* Headings & text */
 h1,h2,h3,h4,h5 { color: var(--text-strong) !important; }
 p, label, .sync-status, .last-updated, .text-slate-400 { color: var(--muted) !important; }
@@ -365,24 +402,20 @@ input::placeholder, textarea::placeholder { color: #9aa4b2 !important; }
 table { color: var(--text) !important; }
 th, td { border-color: rgba(255,255,255,.10) !important; }
 thead { background: #0f172a !important; }
-/* Specific elements in provided files */
-/* Database Checker */
-#databaseContent { background:#0f172a !important; }
-#krhredResults, #krhredDetails { background:#111827 !important; }
-/* WFH Tracker calendar day colors */
-.day.today { background:#64ffda !important; color:#0a192f !important; }
-.day.wfh { background:#4caf50 !important; color:#fff !important; }
-.day.other { background:#ff9800 !important; color:#fff !important; }
-.day.weekend { background:#ef4444 !important; color:#fff !important; }
-/* Bookmarklet page container */
-body > .container { background: var(--surface) !important; }
-/* Counter */
-.buttons button:disabled { opacity:.5 !important; }
-/* Scroll containers borders subtle */
-#sidebar, #fileList { box-shadow: none !important; }
-/* Keep selection visible */
-::selection { background: rgba(124,137,255,.35); color:#fff; }
+/* Specific: config page pieces */
+#sidebar { background: var(--surface) !important; }
+#mainContent { background: var(--surface) !important; }
+
+#mainContent {
+  background: #0b1220 !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
+  margin: 20px !important;
+}
+
 </style>
+
 </head>
 <body>
 <div id="sidebar">
@@ -1060,13 +1093,16 @@ updateSubjectBtn.addEventListener('click', () => {
 
 </script>
 
+
+
+
 <!-- Tombol Back ke Index -->
 <button class="back-btn" onclick="window.location.href='index.html'">⌂</button>
 
 <style>
 .back-btn {
   position: fixed;
-  top: 16px;
+  top: 1px;
   right: 16px;
   background: #222;
   color: #fff;
