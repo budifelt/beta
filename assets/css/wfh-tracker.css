@@ -1,6 +1,6 @@
-/* ===== Night Sky Calendar — Responsive CSS ===== */
+/* ===== Night Sky Calendar — Responsive CSS (Final) ===== */
 
-/* Base layout */
+/* Theme tokens */
 :root{
   --bg:#0a192f;
   --glass:rgba(255,255,255,.1);
@@ -22,19 +22,20 @@ body{
   margin:0;
   padding:0;
   min-height:100vh;
+
+  /* Center by default (desktop/tablet) */
   display:flex;
   justify-content:center;
   align-items:center;
-  /* sebelumnya overflow:hidden yang bikin tak bisa scroll di hp */
+
+  /* allow scroll on small screens / long months */
   overflow-y:auto;
 }
 
 /* Starfield */
 .stars{
-  position:fixed;
-  inset:0;
-  width:100%;
-  height:100%;
+  position:fixed; inset:0;
+  width:100%; height:100%;
   background:transparent;
   overflow:hidden;
   z-index:-1;
@@ -42,7 +43,7 @@ body{
 .star{
   position:absolute;
   background:#fff;
-  width:2px;height:2px;border-radius:50%;
+  width:2px; height:2px; border-radius:50%;
   animation:fall linear infinite;
 }
 @keyframes fall{
@@ -57,9 +58,11 @@ body{
   border-radius:15px;
   padding:20px;
   box-shadow:var(--shadow);
-  /* responsive */
+
+  /* responsive width */
   width:100%;
   max-width:420px;
+
   text-align:center;
   z-index:1;
   margin:16px;
@@ -80,16 +83,17 @@ body{
   font-size:1.5rem;
 }
 .calendar-header button{
-  background:none;border:none;cursor:pointer;
+  background:none; border:none; cursor:pointer;
   padding:10px;
-  display:flex;align-items:center;justify-content:center;
-  transition:transform .2s ease,opacity .2s ease;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .2s ease, opacity .2s ease;
 }
-.calendar-header button:hover{transform:scale(1.12)}
+.calendar-header button:hover{ transform:scale(1.12) }
 .calendar-header button svg{
-  width:24px;height:24px;fill:var(--accent);transition:fill .2s ease
+  width:24px; height:24px; fill:var(--accent);
+  transition:fill .2s ease;
 }
-.calendar-header button:hover svg{fill:var(--accent-2)}
+.calendar-header button:hover svg{ fill:var(--accent-2) }
 
 /* Days grid */
 .days{
@@ -102,112 +106,106 @@ body{
   border-radius:8px;
   cursor:pointer;
   transition:background .25s ease, transform .08s ease;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
   background:transparent;
   user-select:none;
 }
-.day:active{transform:scale(.98)}
-.day:hover{background:rgba(255,255,255,.1)}
-.day.empty{visibility:hidden}
+.day:active{ transform:scale(.98) }
+.day:hover{ background:rgba(255,255,255,.1) }
+.day.empty{ visibility:hidden }
 
 /* States */
-.day.today{background:var(--accent);color:var(--bg)}
-.day.wfh{background:var(--success);color:#fff}
-.day.other{background:var(--accent-2);color:#fff}
-.day.weekend{background:var(--danger);color:#fff;cursor:not-allowed}
-.day.holiday{background:var(--danger);color:#fff;cursor:pointer}
+.day.today{ background:var(--accent); color:var(--bg) }
+.day.wfh{ background:var(--success); color:#fff }
+.day.other{ background:var(--accent-2); color:#fff }
+.day.weekend{ background:var(--danger); color:#fff; cursor:not-allowed }
+.day.holiday{ background:var(--danger); color:#fff; cursor:pointer }
 
-/* Text inside cell */
-.day-number{font-size:1rem;font-weight:700}
-.day-name{font-size:.75rem;color:rgba(255,255,255,.75)}
-.day.weekend .day-name{color:#fff}
+/* Text */
+.day-number{ font-size:1rem; font-weight:700 }
+.day-name{ font-size:.75rem; color:rgba(255,255,255,.75) }
+.day.weekend .day-name{ color:#fff }
 
-/* Other-month styling */
-.day.other-month{opacity:.45;cursor:default}
-.day.other-month:hover{background:transparent}
+/* Other-month */
+.day.other-month{ opacity:.45; cursor:default }
+.day.other-month:hover{ background:transparent }
 
-/* Total count text under calendar (set inline by JS) */
+/* Total count (added by JS) */
 #total-wfo-count{
   margin-top:10px;
   font-weight:700;
   color:var(--success);
 }
 
-/* Back (home) floating button */
+/* Home button */
 .back-btn{
-  position:fixed;top:16px;right:16px;
-  background:#222;color:#fff;border:none;border-radius:50%;
-  width:42px;height:42px;font-size:20px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.25);
+  position:fixed; top:16px; right:16px;
+  background:#222; color:#fff; border:none; border-radius:50%;
+  width:42px; height:42px; font-size:20px; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.25);
   transition:background .2s ease, transform .2s ease;
   z-index:1000;
 }
-.back-btn:hover{background:#444;transform:scale(1.08)}
+.back-btn:hover{ background:#444; transform:scale(1.08) }
 
 /* =========================
-   RESPONSIVE — Mobile First
+   MOBILE
    ========================= */
 @media (max-width: 600px){
-  /* Layout tweaks for small screens */
+  /* Keep scrollable but still centered visually */
   body{
-    align-items:flex-start;
+    flex-direction:column;
+    justify-content:center;   /* center vertically when possible */
+    align-items:center;       /* center horizontally */
     padding:12px;
   }
 
   .calendar{
     padding:14px;
     max-width:100%;
-    margin:8px auto 24px;
+    margin:12px auto;         /* center block */
   }
 
   .calendar-header{
     padding:8px;
     margin-bottom:14px;
   }
-  .calendar-header h1{font-size:1.2rem}
-  .calendar-header button svg{width:22px;height:22px}
+  .calendar-header h1{ font-size:1.2rem }
+  .calendar-header button svg{ width:22px; height:22px }
 
-  .days{
-    gap:4px;
+  .days{ gap:4px }
+  .day{ padding:8px; border-radius:7px }
+  .day-number{ font-size:.95rem }
+  .day-name{ font-size:.68rem }
+
+  .back-btn{
+    width:36px; height:36px; font-size:16px;
+    top:10px; right:10px;
   }
-  .day{padding:8px;border-radius:7px}
-  .day-number{font-size:.95rem}
-  .day-name{font-size:.68rem}
-
-  .back-btn{width:36px;height:36px;font-size:16px;top:10px;right:10px}
 }
 
-/* Even smaller phones */
+/* XS phones */
 @media (max-width: 380px){
-  .calendar{padding:12px}
-  .day{padding:6px}
-  .day-number{font-size:.9rem}
-  .day-name{font-size:.62rem}
+  .calendar{ padding:12px }
+  .day{ padding:6px }
+  .day-number{ font-size:.9rem }
+  .day-name{ font-size:.62rem }
 }
 
-/* Desktop view (lebih lebar dari tablet) */
-@media (min-width: 1024px) {
-  body {
-    align-items: center;
+/* =========================
+   DESKTOP ENHANCEMENT
+   ========================= */
+@media (min-width: 1024px){
+  body{ align-items:center } /* full center desktop */
+
+  .calendar{
+    max-width:620px;          /* roomier on desktop */
+    transform:scale(1.2);     /* subtle zoom */
+    transform-origin:center;
   }
 
-  .calendar {
-    max-width: 600px;  /* lebih lega di desktop */
-    transform: scale(1.2);
-    transform-origin: center;
-  }
-
-  .calendar-header h1 {
-    font-size: 1.8rem;
-  }
-
-  .day-number {
-    font-size: 1.1rem;
-  }
-
-  .day-name {
-    font-size: 0.8rem;
-  }
+  .calendar-header h1{ font-size:1.8rem }
+  .day-number{ font-size:1.1rem }
+  .day-name{ font-size:.8rem }
 }
-
