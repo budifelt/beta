@@ -323,3 +323,127 @@ body {
   background: #444;
   transform: scale(1.08);
 }
+
+/* Sidebar state saat butuh Reopen */
+#fileList.needs-reopen {
+  position: relative;
+  pointer-events: none;   /* blokir klik agar tidak bingung */
+  opacity: 0.6;
+}
+#fileList .filelist-placeholder {
+  font-size: 14px;
+  color: #222222;
+  background: #fff7f7;
+  border: 1px dashed #e6b8b5;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
+/* ========= Sidebar / File Tree — Dark-friendly colors ========= */
+:root {
+  /* Palet dasar sidebar */
+  --side-bg:        #0b1220;     /* gelap */
+  --side-text:      #e5e7eb;     /* slate-200 */
+  --side-muted:     #94a3b8;     /* slate-400 */
+  --side-border:    #1f2937;     /* slate-800 */
+  /* Aksen biru/indigo */
+  --accent:         #6366f1;     /* indigo-500 */
+  --accent-weak:    rgba(99,102,241,.12);
+  --accent-weak-2:  rgba(59,130,246,.10);
+}
+
+/* Jika ada halaman bertema terang */
+html[data-theme="light"] {
+  --side-bg:       #f8fafc;
+  --side-text:     #0f172a;
+  --side-muted:    #475569;
+  --side-border:   #e2e8f0;
+  --accent:        #4f46e5;
+  --accent-weak:   rgba(79,70,229,.10);
+  --accent-weak-2: rgba(59,130,246,.08);
+}
+
+/* Warna teks/icon default di tree */
+#fileList ul li,
+#fileList .folder-name,
+#fileList .file-name {
+  color: var(--side-text);
+}
+#fileList .arrow,
+#fileList .folder-icon,
+#fileList .file-icon {
+  color: var(--side-muted);
+}
+
+/* Hover & selected: subtle dan sesuai tema */
+#fileList li.file:hover,
+#fileList li.folder:hover {
+  background: rgba(148,163,184,.08);         /* slate-400/opacity */
+}
+#fileList li.file.selected {
+  background: var(--accent-weak);
+  outline: 1px solid rgba(99,102,241,.35);
+  border-left: 2px solid var(--accent);
+}
+
+/* ======= State "Needs Reopen" (placeholder) ======= */
+#fileList.needs-reopen {
+  position: relative;
+  pointer-events: none;   /* tetap nonaktif */
+  opacity: 1;             /* jangan pudar total biar teks terbaca */
+  background: transparent;
+}
+
+/* Ganti kartu placeholder merah → aksen indigo tematik */
+#fileList .filelist-placeholder {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--side-text);
+  background:
+    linear-gradient(135deg, var(--accent-weak), rgba(99,102,241,.06));
+  border: 1px dashed rgba(99,102,241,.35);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 8px 6px 4px 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.22);
+}
+
+/* Scrollbar (opsional) biar nyambung tema */
+#fileList ::-webkit-scrollbar { width: 10px; }
+#fileList ::-webkit-scrollbar-track { background: transparent; }
+#fileList ::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,.25);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+#fileList ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148,163,184,.4);
+}
+
+/* === Sidebar lebih lebar === */
+#sidebar{
+  width: 350px !important;
+  min-width: 350px !important;
+  max-width: 350px !important;
+}
+
+/* === Nama file/folder jangan ditekuk === */
+#fileList .folder-name,
+#fileList .file-name{
+  display: inline-block;
+  white-space: nowrap !important;   /* satu baris */
+  overflow: hidden;                  /* cegah tumpah */
+  text-overflow: ellipsis;           /* tampilkan … kalau kepanjangan */
+}
+
+/* Khusus item file (flex container) perlu min-width:0 agar ellipsis bekerja */
+#fileList li.file .file-name{
+  flex: 1 1 auto;
+  min-width: 0;                      /* penting untuk text-overflow di flex */
+}
+
+/* (Opsional) jika mau bisa geser horizontal daripada ellipsis, aktifkan: */
+/* #fileList{ overflow-x: auto; } */
