@@ -1,4 +1,3 @@
-// assets/js/config.js
 // ---- State & element refs ----
 let fileHandle;
 let xmlDoc;
@@ -18,7 +17,31 @@ const folderOpenBtn = document.getElementById('folderOpenBtn');
 const fileListRoot = document.getElementById('fileList');
 const fileList = fileListRoot.querySelector('ul');
 
-// ---- Helpers to control sidebar state (disabled / enabled) ----
+/* =========================
+   Font Awesome status icons
+   ========================= */
+function setStatusIcon(id, status /* 'ok' | 'error' */) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  let icon = el.querySelector('i');
+  if (!icon) {
+    icon = document.createElement('i');
+    icon.setAttribute('aria-hidden', 'true');
+    el.appendChild(icon);
+  }
+  icon.className = (status === 'error')
+    ? 'fa-solid fa-circle-xmark'
+    : 'fa-solid fa-circle-check';
+
+  el.style.display = 'inline';
+}
+function clearStatusIcon(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
+/* ---- Helpers to control sidebar state (disabled / enabled) ---- */
 function markFileListNeedsReopen() {
   fileListRoot.classList.add('needs-reopen');
   fileList.innerHTML = '';
@@ -26,7 +49,6 @@ function markFileListNeedsReopen() {
   placeholder.className = 'filelist-placeholder';
   placeholder.textContent = 'Folder permission berakhir. Klik "Reopen Folder" untuk memuat ulang.';
   fileListRoot.appendChild(placeholder);
-
   folderOpenBtn.textContent = 'Reopen Folder';
   folderOpenBtn.style.backgroundColor = '#ff6b6b';
 }
@@ -38,10 +60,9 @@ function clearFileListDisabled() {
   folderOpenBtn.style.backgroundColor = '';
 }
 
-// ================================
-//  KRHRED helpers (UPDATED - no notice)
-// ================================
-
+/* ================================
+   KRHRED helpers (no notice modal)
+   ================================ */
 /**
  * Normalize ALL tokens that contain KRHRED + digits into canonical:
  *    <%[KRHRED_Unit_XX]|%>
@@ -51,21 +72,15 @@ function clearFileListDisabled() {
  */
 function normalizeKrhredTokens(text) {
   if (!text) return { text, missingDetected: false };
-
-  // Convert lookalikes O→0, I/L→1
   const toDigits2 = (raw) => {
     if (raw == null || raw === '') return null;
     const s = String(raw);
-    const d = s
-      .replace(/[oO]/g, '0')
-      .replace(/[lI]/g, '1')
-      .replace(/\D/g, '');
-    return d ? d.padStart(2, '0').slice(-2) : null;
+    const d = s.replace(/[oO]/g,'0').replace(/[lI]/g,'1').replace(/\D/g,'');
+    return d ? d.padStart(2,'0').slice(-2) : null;
   };
 
   let missingDetected = false;
 
-  // Protect already-canonical so we don't re-wrap
   const placeholders = [];
   text = text.replace(
     /<%\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*%>/gi,
@@ -76,58 +91,39 @@ function normalizeKrhredTokens(text) {
       return key;
     }
   );
-
-  // Fix variants missing '%' like: <[KRHRED_Unit_39]|>  →  <%[KRHRED_Unit_39]|%>
   text = text.replace(
     /<\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
-
-  // Other bracket/percent variants inside <% ... %> but malformed → canonical
   text = text.replace(
     /<%\s*\[?\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]?\s*(?:\|\s*)?%>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
-
-  // Angle bracket only: <KRHRED_39> / <KRHRED Unit 7> → canonical
   text = text.replace(
     /<\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
-
-  // Bare tokens with digits: KRHRED_39 / KRHRED unit 7 → canonical
   text = text.replace(
     /(?<![<\[])\bKRHRED(?:_Unit)?(?:[_\s-]*([0-9oOlLiI]{1,2}))\b(?!\s*[%>\]])/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
-
-  // Detect bare KRHRED without digits — DO NOT change, just flag
   text = text.replace(
     /(?<![<\[])\bKRHRED\b(?![_\s-]*[0-9oOlLiI]{1,2})(?!\s*[%>\]])/gi,
     (m) => {
       missingDetected = true;
-      return m; // keep
+      return m;
     }
   );
-
-  // Restore protected canonical tokens
   for (const [key, canon] of placeholders) {
     text = text.replaceAll(key, canon);
   }
-
   return { text, missingDetected };
 }
 
-// ---- Save / Load XML ----
+/* ---- Save / Load XML ---- */
 saveFileBtn.addEventListener('click', async () => {
-  if (!fileHandle) {
-    alert("No file opened yet.");
-    return;
-  }
-  if (!editor.textContent.trim()) {
-    alert("Editor is empty, cannot save.");
-    return;
-  }
+  if (!fileHandle) { alert("No file opened yet."); return; }
+  if (!editor.textContent.trim()) { alert("Editor is empty, cannot save."); return; }
 
   saveFileBtn.disabled = true;
   const originalText = saveFileBtn.textContent;
@@ -157,7 +153,6 @@ saveFileBtn.addEventListener('click', async () => {
   }
 });
 
-// Reset save button color to default when any input changes
 [campaignIdInput, subjectInput, linkInput].forEach(inp => {
   inp.addEventListener('input', () => {
     saveFileBtn.style.borderColor = '';
@@ -165,7 +160,7 @@ saveFileBtn.addEventListener('click', async () => {
   });
 });
 
-// ---- Link vs CampaignID live mismatch check ----
+/* ---- Link vs CampaignID live mismatch check ---- */
 linkInput.addEventListener('input', () => {
   saveFileBtn.style.borderColor = '';
   saveFileBtn.style.backgroundColor = '';
@@ -185,10 +180,7 @@ linkInput.addEventListener('input', () => {
       matchDigitsLength = digitsPart.length;
     }
   }
-  if (!matchDigits) {
-    matchDigits = campaignId.slice(-4);
-    matchDigitsLength = 4;
-  }
+  if (!matchDigits) { matchDigits = campaignId.slice(-4); matchDigitsLength = 4; }
 
   let mismatch = false;
   if (campaignId && linkValue) {
@@ -231,23 +223,11 @@ function updateCampaignCountIndicator(campaignId) {
   }
   campaignId = campaignId.trim();
   let count = 0;
-  xmlDoc.querySelectorAll('AudienceModel').forEach(el => {
-    if (el.getAttribute('name') === campaignId) count++;
-  });
-  xmlDoc.querySelectorAll('Campaign').forEach(el => {
-    if (el.getAttribute('name') === campaignId) count++;
-    if (el.getAttribute('audience') === campaignId) count++;
-  });
-  xmlDoc.querySelectorAll('Interaction').forEach(el => {
-    if (el.getAttribute('name') === campaignId) count++;
-    if (el.getAttribute('message') === campaignId) count++;
-  });
-  xmlDoc.querySelectorAll('MessageContent').forEach(el => {
-    if (el.getAttribute('name') === campaignId) count++;
-  });
-  xmlDoc.querySelectorAll('FilterValue').forEach(el => {
-    if (el.getAttribute('value') === campaignId) count++;
-  });
+  xmlDoc.querySelectorAll('AudienceModel').forEach(el => { if (el.getAttribute('name') === campaignId) count++; });
+  xmlDoc.querySelectorAll('Campaign').forEach(el => { if (el.getAttribute('name') === campaignId) count++; if (el.getAttribute('audience') === campaignId) count++; });
+  xmlDoc.querySelectorAll('Interaction').forEach(el => { if (el.getAttribute('name') === campaignId) count++; if (el.getAttribute('message') === campaignId) count++; });
+  xmlDoc.querySelectorAll('MessageContent').forEach(el => { if (el.getAttribute('name') === campaignId) count++; });
+  xmlDoc.querySelectorAll('FilterValue').forEach(el => { if (el.getAttribute('value') === campaignId) count++; });
 
   campaignCountIndicator.textContent = count + "/7";
   campaignCountIndicator.style.color = (count === 7) ? "green" : "red";
@@ -276,7 +256,7 @@ function initializeFields() {
   linkInput.value = link;
 }
 
-// Live validation campaignId (no spaces) + mismatch toggle
+/* Live validation campaignId (no spaces) + mismatch toggle */
 campaignIdInput.addEventListener('input', () => {
   updateCampaignCountIndicator(campaignIdInput.value);
   campaignIdInput.style.borderColor = /\s/.test(campaignIdInput.value) ? 'red' : '';
@@ -303,14 +283,19 @@ campaignIdInput.addEventListener('input', () => {
     campaignIdInput.style.borderColor = '';
     linkInput.style.borderColor = '';
   }
+  clearStatusIcon('campaignIdCheckmark');
 });
 
+/* =========================
+   UPDATE CAMPAIGN ID
+   ========================= */
 updateCampaignIdBtn.addEventListener('click', () => {
   if (!xmlDoc) return alert("No XML loaded.");
 
   if (/\s/.test(campaignIdInput.value)) {
-    campaignIdInput.style.borderColor = 'red';
+    campaignIdInput.classList.add('error');
     alert('Campaign ID must not contain spaces.');
+    clearStatusIcon('campaignIdCheckmark');
     return;
   }
 
@@ -339,15 +324,12 @@ updateCampaignIdBtn.addEventListener('click', () => {
 
   updateEditor();
 
-  // Char count & checkmark
+  // Char count & status icon
   const campaignIdCharCountSpan = document.getElementById('campaignIdCharCount');
   if (campaignIdCharCountSpan) campaignIdCharCountSpan.textContent = `(${campaignIdInput.value.length})`;
-  const checkmark = document.getElementById('campaignIdCheckmark');
-  if (checkmark) {
-    checkmark.textContent = '✓';
-    checkmark.style.color = '';
-    checkmark.style.display = 'inline';
-  }
+
+  campaignIdInput.classList.remove('error');
+  setStatusIcon('campaignIdCheckmark', 'ok');
 
   // Clear mismatch styles
   document.getElementById('mismatchWarning').style.display = 'none';
@@ -355,33 +337,21 @@ updateCampaignIdBtn.addEventListener('click', () => {
   linkInput.style.borderColor = '';
 });
 
-// Reset checkmarks on input
-campaignIdInput.addEventListener('input', () => {
-  const checkmark = document.getElementById('campaignIdCheckmark');
-  if (checkmark) checkmark.style.display = 'none';
-});
-subjectInput.addEventListener('input', () => {
-  const checkmark = document.getElementById('subjectCheckmark');
-  if (checkmark) checkmark.style.display = 'none';
-});
-linkInput.addEventListener('input', () => {
-  const checkmark = document.getElementById('linkCheckmark');
-  if (checkmark) checkmark.style.display = 'none';
-});
+/* ---- Clear icons saat mengetik ---- */
+campaignIdInput.addEventListener('input', () => clearStatusIcon('campaignIdCheckmark'));
+subjectInput.addEventListener('input',   () => clearStatusIcon('subjectCheckmark'));
+linkInput.addEventListener('input',      () => clearStatusIcon('linkCheckmark'));
 
-// ================================
-//  Update subject button (UPDATED, no notice)
-// ================================
+/* =========================
+   UPDATE SUBJECT (KRHRED)
+   ========================= */
 updateSubjectBtn.addEventListener('click', () => {
   if (!xmlDoc) return alert("No XML loaded.");
 
   const messageContent = xmlDoc.querySelector('MessageContent');
   if (!messageContent) return;
 
-  const before = subjectInput.value;
-  let s = before.replace(/\s{2,}/g, ' ').trim();
-
-  // Normalize KRHRED tokens with digits; leave bare KRHRED as-is but flag
+  let s = subjectInput.value.replace(/\s{2,}/g, ' ').trim();
   const { text: normalized, missingDetected } = normalizeKrhredTokens(s);
   s = normalized;
   subjectInput.value = s;
@@ -389,35 +359,23 @@ updateSubjectBtn.addEventListener('click', () => {
   const charCountSpan = document.getElementById('subjectCharCount');
   if (charCountSpan) charCountSpan.textContent = `(${s.length})`;
 
-  const checkmark = document.getElementById('subjectCheckmark');
-
   if (missingDetected) {
-    // Block update to XML & saving; show X mark only
-    if (checkmark) {
-      checkmark.textContent = '✗';
-      checkmark.style.color = '#d92d20';
-      checkmark.style.display = 'inline';
-    }
-    subjectInput.style.borderColor = 'red';
+    subjectInput.classList.add('error');
+    setStatusIcon('subjectCheckmark', 'error'); // X merah saat invalid
     saveFileBtn.disabled = true;
     return;
   }
 
-  // Safe to commit: update XML + enable save + show ✓
   messageContent.setAttribute('subject', s);
-  subjectInput.style.borderColor = '';
+  subjectInput.classList.remove('error');
   saveFileBtn.disabled = false;
-
-  if (checkmark) {
-    checkmark.textContent = '✓';
-    checkmark.style.color = '';
-    checkmark.style.display = 'inline';
-  }
-
   updateEditor();
+  setStatusIcon('subjectCheckmark', 'ok');      // ceklis saat valid
 });
 
-// Update link button
+/* =========================
+   UPDATE LINK
+   ========================= */
 updateLinkBtn.addEventListener('click', () => {
   if (!xmlDoc) return alert("No XML loaded.");
 
@@ -425,25 +383,30 @@ updateLinkBtn.addEventListener('click', () => {
   if (messageBody) {
     let linkValue = linkInput.value.trim();
     const urlPattern = /^(http:\/\/|https:\/\/).+/i;
+
     if (!urlPattern.test(linkValue)) {
       alert('Please enter a valid link starting with http:// or https://');
-      linkInput.style.borderColor = 'red';
+      linkInput.classList.add('error');
+      clearStatusIcon('linkCheckmark');
+      saveFileBtn.disabled = true;
       return;
     }
+
     if (linkValue.startsWith('https://')) {
       linkValue = 'http://' + linkValue.substring(8);
     }
+
     messageBody.setAttribute('content', linkValue);
-    linkInput.style.borderColor = '';
+    linkInput.classList.remove('error');
   }
 
   updateEditor();
   saveFileBtn.disabled = false;
 
-  const checkmark = document.getElementById('linkCheckmark');
-  if (checkmark) checkmark.style.display = 'inline';
+  setStatusIcon('linkCheckmark', 'ok');
 });
 
+/* ---- Editor helper ---- */
 function updateEditor() {
   if (!xmlDoc) return;
   const serializer = new XMLSerializer();
@@ -452,7 +415,7 @@ function updateEditor() {
   editor.textContent = updatedXmlStr;
 }
 
-// ---- Open / Reopen Folder ----
+/* ---- Open / Reopen Folder ---- */
 folderOpenBtn.addEventListener('click', async () => {
   try {
     const dirHandle = await window.showDirectoryPicker();
@@ -466,36 +429,18 @@ folderOpenBtn.addEventListener('click', async () => {
       const directories = entries.filter(e => e.kind === 'directory').sort((a, b) => a.name.localeCompare(b.name));
       const files = entries.filter(e => e.kind === 'file').sort((a, b) => a.name.localeCompare(b.name));
 
-      // Folders
       for (const entry of directories) {
         const li = document.createElement('li');
         li.classList.add('folder');
         li.style.fontWeight = 'normal';
 
-        const arrowSpan = document.createElement('span');
-        arrowSpan.classList.add('arrow');
-        li.appendChild(arrowSpan);
+        const arrowSpan = document.createElement('span'); arrowSpan.classList.add('arrow'); li.appendChild(arrowSpan);
+        const folderIconSpan = document.createElement('span'); folderIconSpan.classList.add('folder-icon'); li.appendChild(folderIconSpan);
+        const folderNameSpan = document.createElement('span'); folderNameSpan.classList.add('folder-name'); folderNameSpan.textContent = entry.name; folderNameSpan.title = entry.name; li.appendChild(folderNameSpan);
 
-        const folderIconSpan = document.createElement('span');
-        folderIconSpan.classList.add('folder-icon');
-        li.appendChild(folderIconSpan);
+        const subUl = document.createElement('ul'); subUl.style.display = 'none'; li.appendChild(subUl);
 
-        const folderNameSpan = document.createElement('span');
-        folderNameSpan.classList.add('folder-name');
-        folderNameSpan.textContent = entry.name;
-        folderNameSpan.title = entry.name;
-        li.appendChild(folderNameSpan);
-
-        const subUl = document.createElement('ul');
-        subUl.style.display = 'none';
-        li.appendChild(subUl);
-
-        const toggle = (e) => {
-          e.stopPropagation();
-          const open = subUl.style.display === 'none';
-          subUl.style.display = open ? 'block' : 'none';
-          li.classList.toggle('open', open);
-        };
+        const toggle = (e) => { e.stopPropagation(); const open = subUl.style.display === 'none'; subUl.style.display = open ? 'block' : 'none'; li.classList.toggle('open', open); };
         arrowSpan.addEventListener('click', toggle);
         folderNameSpan.addEventListener('click', toggle);
 
@@ -503,21 +448,13 @@ folderOpenBtn.addEventListener('click', async () => {
         parentUl.appendChild(li);
       }
 
-      // Files
       for (const entry of files) {
         const li = document.createElement('li');
         li.classList.add('file');
         li.title = entry.name;
 
-        const fileIconSpan = document.createElement('span');
-        fileIconSpan.classList.add('file-icon');
-        fileIconSpan.textContent = "📄";
-        li.appendChild(fileIconSpan);
-
-        const fileNameSpan = document.createElement('span');
-        fileNameSpan.classList.add('file-name');
-        fileNameSpan.textContent = entry.name;
-        li.appendChild(fileNameSpan);
+        const fileIconSpan = document.createElement('span'); fileIconSpan.classList.add('file-icon'); fileIconSpan.textContent = "📄"; li.appendChild(fileIconSpan);
+        const fileNameSpan = document.createElement('span'); fileNameSpan.classList.add('file-name'); fileNameSpan.textContent = entry.name; li.appendChild(fileNameSpan);
 
         li.addEventListener('click', async (e) => {
           e.stopPropagation();
@@ -527,11 +464,8 @@ folderOpenBtn.addEventListener('click', async () => {
           editor.textContent = text;
           loadXmlFromText(text);
 
-          // Reset checkmarks + warning
-          ['campaignIdCheckmark','subjectCheckmark','linkCheckmark'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.style.display = 'none';
-          });
+          // Reset icons + warning
+          ['campaignIdCheckmark','subjectCheckmark','linkCheckmark'].forEach(id => clearStatusIcon(id));
           const mismatchWarning = document.getElementById('mismatchWarning');
           if (mismatchWarning) mismatchWarning.style.display = 'none';
           campaignIdInput.style.borderColor = '';
@@ -540,7 +474,6 @@ folderOpenBtn.addEventListener('click', async () => {
           saveFileBtn.style.borderColor = '';
           saveFileBtn.style.backgroundColor = '';
 
-          // Highlight selected
           fileList.querySelectorAll('li').forEach(sib => sib.classList.remove('selected'));
           li.classList.add('selected');
         });
@@ -557,7 +490,7 @@ folderOpenBtn.addEventListener('click', async () => {
   }
 });
 
-// ---- Pretty print XML (fix typo) ----
+/* ---- Pretty print XML ---- */
 function formatXml(xml) {
   let formatted = '';
   xml = xml.replace(/(>)(<)(\/*)/g, '$1\r\n$2$3');
@@ -572,16 +505,14 @@ function formatXml(xml) {
       indent = 1;
     }
     let padding = '';
-    for (let i = 0; i < pad; i++) {
-      padding += '  ';
-    }
+    for (let i = 0; i < pad; i++) { padding += '  '; }
     formatted += padding + node + '\r\n';
     pad += indent;
   });
   return formatted.trim();
 }
 
-// ---- Simple state persistence (tanpa HTML file list) ----
+/* ---- Simple state persistence ---- */
 function saveState() {
   const state = {
     campaignId: campaignIdInput.value,
@@ -592,7 +523,6 @@ function saveState() {
   };
   localStorage.setItem('config_state', JSON.stringify(state));
 }
-
 function loadState() {
   const saved = localStorage.getItem('config_state');
   if (!saved) return;
@@ -606,18 +536,9 @@ function loadState() {
       editor.textContent = state.xmlContent;
       loadXmlFromText(state.xmlContent);
     }
-
-    if (state.folderOpened) {
-      markFileListNeedsReopen();
-    }
-  } catch (e) {
-    console.error('Error loading state:', e);
-  }
+    if (state.folderOpened) { markFileListNeedsReopen(); }
+  } catch (e) { console.error('Error loading state:', e); }
 }
-
-// Auto-save on input changes
 [campaignIdInput, subjectInput, linkInput].forEach(inp => inp.addEventListener('input', saveState));
-
-// Load on page ready & save before unload
 window.addEventListener('load', loadState);
 window.addEventListener('beforeunload', saveState);
