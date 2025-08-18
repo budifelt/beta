@@ -95,11 +95,13 @@ function clearFileListDisabled() {
 }
 
 /* ================================
-   KRHRED helpers
+   KRHRED helpers (robust normalizer)
    ================================ */
 /**
- * Menormalisasi semua variasi KRHRED_XX menjadi <%[KRHRED_Unit_XX]|%>
- * dan mendeteksi KRHRED tanpa angka (invalid).
+ * Normalisasi semua variasi KRHRED_XX / KRHRED_Unit_XX menjadi <%[KRHRED_Unit_XX]|%>
+ * - KRHRED doang (tanpa angka) TIDAK diubah dan ditandai invalid (missingDetected=true).
+ * - Menolerir typo umum: hilang '<' atau '>', hilang '%', hilang '|', kurung siku opsional,
+ *   spasi/underscore/dash antar token, serta O/I/L → 0/1/1 untuk nomor.
  * Return: { text, missingDetected }
  */
 function normalizeKrhredTokens(text) {
@@ -108,13 +110,16 @@ function normalizeKrhredTokens(text) {
   const toDigits2 = (raw) => {
     if (raw == null || raw === '') return null;
     const s = String(raw);
-    const d = s.replace(/[oO]/g,'0').replace(/[lI]/g,'1').replace(/\D/g,'');
+    const d = s
+      .replace(/[oO]/g,'0')
+      .replace(/[lI]/g,'1')
+      .replace(/\D/g,'');
     return d ? d.padStart(2,'0').slice(-2) : null;
   };
 
   let missingDetected = false;
 
-  // Lindungi token yang sudah valid supaya tidak disentuh
+  // 0) Lindungi token yang SUDAH benar persis → perubahan nol
   const placeholders = [];
   text = text.replace(
     /<%\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*%>/gi,
@@ -126,30 +131,42 @@ function normalizeKrhredTokens(text) {
     }
   );
 
-  // Variasi umum → canonical
+  // 1) Spesifik beberapa bentuk umum yang sering muncul
+  //    a) <[...]|>  (tanpa %)
   text = text.replace(
     /<\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
+  //    b) <%[...]|>  (kurang '%>' akhir)
   text = text.replace(
-    /<%\s*\[?\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]?\s*(?:\|\s*)?%>/gi,
+    /<%\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
+  //    c) <KRHRED_XX> / <KRHRED Unit XX>
   text = text.replace(
     /<\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
+  //    d) KRHRED_XX berdiri sendiri
   text = text.replace(
-    /(?<![<\[])\bKRHRED(?:_Unit)?(?:[_\s-]*([0-9oOlLiI]{1,2}))\b(?!\s*[%>\]])/gi,
+    /(?<![<\[])\bKRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\b(?!\s*[%>\]])/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
 
-  // KRHRED tanpa angka → tandai invalid (jangan diubah)
+  // 2) Sapu jagat — menangkap bentuk yang kehilangan salah satu simbol:
+  //    contoh: "%[KRHRED_Unit_33]|%>" atau "[KRHRED_Unit_5]|%" atau "<%KRHRED_Unit_7%>"
+  //    Pola: opsional '<', opsional '%', opsional '[', ... angka wajib, opsional ']', opsional '|', opsional '%', opsional '>'
+  text = text.replace(
+    /<?%?\s*\[?\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]?\s*\|?\s*%?>?/gi,
+    (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
+  );
+
+  // 3) KRHRED tanpa angka → tandai invalid (tidak diubah)
   if (/\bKRHRED\b(?![_\s-]*[0-9oOlLiI]{1,2})/i.test(text)) {
     missingDetected = true;
   }
 
-  // Kembalikan placeholder
+  // 4) Kembalikan placeholder (yang sudah valid sejak awal)
   for (const [key, canon] of placeholders) {
     text = text.replaceAll(key, canon);
   }
@@ -453,11 +470,10 @@ updateSubjectBtn.addEventListener('click', () => {
   if (!messageContent) { alert("MessageContent not found in XML."); return; }
 
   // 1) Normalisasi semua KRHRED_XX → <%[KRHRED_Unit_XX]|%>
-  // 2) Jika ada KRHRED tanpa angka → TOLAK (tidak tulis ke XML)
+  // 2) KRHRED tanpa angka → TOLAK (tidak tulis ke XML)
   let s = subjectInput.value.replace(/\s{2,}/g, ' ').trim();
   const { text: normalized, missingDetected } = normalizeKrhredTokens(s);
 
-  // gate: jika ada KRHRED tanpa angka, tombol seharusnya sudah disabled
   if (missingDetected || normalized.trim() === '') {
     subjectInput.classList.add('error');
     setStatusIcon('subjectCheckmark', 'error');
