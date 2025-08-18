@@ -2,76 +2,73 @@
 <html lang="en">
 <head>
   <link rel="stylesheet" href="assets/css/config.css">
-
   <link rel="stylesheet" href="assets/css/theme.css">
 
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>EDM Config Editor @budifelt</title>
+  <!-- Font Awesome for status icons -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-Sx8Qj0... (cdn default) " crossorigin="anonymous" referrerpolicy="no-referrer">
 
-
-
-
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EDM Config Editor @budifelt</title>
 </head>
 <body>
-<div id="sidebar">
-  <button id="folderOpenBtn">Open Folder</button>
-  <div id="fileList"><ul></ul></div>
-</div>
-<div id="mainContent">
-<h1>EDM Config Editor</h1>
-
-<label for="campaignId">Campaign ID: <span id="campaignIdCharCount">(0)</span></label>
-<div style="display: inline-block; position: relative;">
-  <input type="text" id="campaignId" style="padding-right: 24px;" />
-  <span id="campaignIdCheckmark" style="display:none; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: green; font-size: 18px;">✔️</span>
-</div>
-<button id="updateCampaignIdBtn">Update Campaign ID</button>
-<span id="campaignCountIndicator"></span>
-  <div id="campaignIdValidation" style="display: flex; align-items: center; gap: 10px;">
-    <span id="mismatchWarning" style="color: red; display: none;">
-      Campaign ID and link mismatch!
-    </span>
+  <div id="sidebar">
+    <button id="folderOpenBtn">Open Folder</button>
+    <div id="fileList"><ul></ul></div>
   </div>
 
+  <div id="mainContent">
+    <h1>EDM Config Editor</h1>
 
+    <!-- Campaign ID -->
+    <label for="campaignId">Campaign ID: <span id="campaignIdCharCount">(0)</span></label>
+    <div class="field has-icon">
+      <input type="text" id="campaignId" />
+      <span id="campaignIdCheckmark" class="status-icon">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      </span>
+    </div>
+    <button id="updateCampaignIdBtn">Update Campaign ID</button>
+    <span id="campaignCountIndicator"></span>
+    <div id="campaignIdValidation" style="display:flex;align-items:center;gap:10px;">
+      <span id="mismatchWarning" style="color:red; display:none;">Campaign ID and link mismatch!</span>
+    </div>
 
+    <!-- Subject -->
+    <label for="subject">Subject: <span id="subjectCharCount">(0)</span></label>
+    <div class="field has-icon">
+      <input type="text" id="subject" />
+      <span id="subjectCheckmark" class="status-icon">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      </span>
+    </div>
+    <button id="updateSubjectBtn">Update Subject</button>
 
+    <!-- Link -->
+    <label for="link">Link (content):</label>
+    <div class="field has-icon">
+      <input type="text" id="link" />
+      <span id="linkCheckmark" class="status-icon">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      </span>
+    </div>
+    <button id="updateLinkBtn">Update Link</button>
 
+    <button id="saveFileBtn">Save Changes</button>
 
-<label for="subject">Subject: <span id="subjectCharCount">(0)</span></label>
-<div style="display: inline-block; position: relative;">
-  <input type="text" id="subject" style="padding-right: 24px;" />
-  <span id="subjectCheckmark" style="display:none; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: green; font-size: 18px;">✔️</span>
-</div>
-<button id="updateSubjectBtn">Update Subject</button>
-
-<label for="link">Link (content):</label>
-<div style="display: inline-block; position: relative;">
-  <input type="text" id="link" style="padding-right: 24px;" />
-  <span id="linkCheckmark" style="display:none; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: green; font-size: 18px;">✔️</span>
-</div>
-<button id="updateLinkBtn">Update Link</button>
-
-<button id="saveFileBtn">Save Changes</button>
-
-  <div style="display: flex; align-items: center; gap: 10px;">
-    <h2>XML Content</h2>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <h2>XML Content</h2>
+    </div>
+    <div id="editor"
+         style="white-space: pre-wrap; font-family: monospace; height: 350px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background-color: white;">
+    </div>
   </div>
-<div id="editor" style="white-space: pre-wrap; font-family: monospace; height: 350px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background-color: white;"></div>
-</div>
 
+  <!-- Tombol Back ke Index -->
+  <button class="back-btn" onclick="window.location.href='index.html'">⌂</button>
 
-
-
-
-
-<!-- Tombol Back ke Index -->
-<button class="back-btn" onclick="window.location.href='index.html'">⌂</button>
-
-
-
-<script src="assets/js/config.js" defer></script>
+  <script src="assets/js/config.js" defer></script>
 </body>
 </html>
