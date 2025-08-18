@@ -1,357 +1,414 @@
+/* ========= Constants ========= */
+const LINES_PER_PAGE   = 1000;
+const MAX_MEMORY_USAGE = 100 * 1024 * 1024; // 100MB
+const MAX_RENDER_ROWS  = 2000; // batas render agar modal tetap ringan
 
-// ---- Extracted scripts from inline <script> blocks ----
-const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
-const LINES_PER_PAGE = 1000;
-const MAX_MEMORY_USAGE = 100 * 1024 * 1024; // 100MB threshold
+/* ========= Regex ========= */
+const unitRegex  = /^KRHRED(?:_Unit)?_\d+$/i;
 
+/* ========= File reader ========= */
 class FileProcessor {
-  constructor() {
-    this.reset();
-  }
-
-  reset() {
+  constructor(){ this.reset(); }
+  reset(){
     this.currentFile = null;
     this.fileContent = '';
-    this.processedLines = [];
-    this.currentOffset = 0;
-    this.isProcessing = false;
+    this.currentLines = [];
     this.totalSize = 0;
     this.loadedSize = 0;
-    this.currentLineCount = 0;
   }
-
-  async processChunk(chunk) {
-    const text = await chunk.text();
-    const lines = text.split('\n');
-    
-    // Handle partial line from previous chunk
-    if (this.partialLine) {
-      lines[0] = this.partialLine + lines[0];
-      this.partialLine = '';
-    }
-
-    // Save partial line for next chunk
-    if (!chunk.done) {
-      this.partialLine = lines.pop();
-    }
-
-    return lines;
-  }
-
-  updateProgress() {
+  updateProgress(){
     const percent = (this.loadedSize / this.totalSize) * 100;
-    const loadingWrapper = document.getElementById('loadingWrapper');
-    if (loadingWrapper) {
-      loadingWrapper.style.visibility = 'visible';
+    const wrap = document.getElementById('loadingWrapper');
+    if (wrap){
+      wrap.style.visibility = 'visible';
       document.getElementById('progressText').textContent = `${Math.round(percent)}%`;
     }
   }
-
-  async readFile(file, onProgress) {
+  async readFile(file, onProgress){
     this.reset();
     this.currentFile = file;
     this.totalSize = file.size;
-    
-    const reader = new ReadableStreamDefaultReader(file.stream());
+
+    const reader  = file.stream().getReader();
     const decoder = new TextDecoder();
-    
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
+
+    try{
+      while(true){
+        const {done, value} = await reader.read();
         if (done) break;
-        
         this.loadedSize += value.length;
-        const text = decoder.decode(value, { stream: !done });
+        const text = decoder.decode(value, {stream:true});
         this.fileContent += text;
-        
         this.updateProgress();
         if (onProgress) onProgress(this.loadedSize, this.totalSize);
-        
-        // Process in smaller chunks to avoid UI blocking
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(r=>setTimeout(r,0));
       }
-    } finally {
-      reader.releaseLock();
-    }
-    
-    const loadingWrapper = document.getElementById('loadingWrapper');
-    if (loadingWrapper) {
-      loadingWrapper.style.visibility = 'hidden';
-    }
-    return this.fileContent;
+    } finally { reader.releaseLock(); }
+
+    const wrap = document.getElementById('loadingWrapper');
+    if (wrap) wrap.style.visibility = 'hidden';
+    this.currentLines = this.fileContent.split('\n');
+    return this.currentLines;
   }
 }
 
+/* ========= Virtual list ========= */
 class VirtualScroller {
-  constructor(container, itemHeight = 20) {
+  constructor(container, itemHeight = 20){
     this.container = container;
-    this.content = container.querySelector('.virtual-scroll-content');
-    this.itemHeight = itemHeight;
-    this.items = [];
-    this.visibleItems = new Set();
-    this.lastScrollPosition = 0;
-    
-    this.container.addEventListener('scroll', this.onScroll.bind(this));
-    this.resizeObserver = new ResizeObserver(() => this.updateVisibleItems());
-    this.resizeObserver.observe(this.container);
+    this.content   = container.querySelector('.virtual-scroll-content');
+    this.itemHeight= itemHeight;
+    this.items     = [];
+    this.visible   = new Set();
+    this.onScroll  = this.onScroll.bind(this);
+    container.addEventListener('scroll', this.onScroll);
+    this.observer = new ResizeObserver(()=>this.update());
+    this.observer.observe(container);
   }
-
-  setItems(items) {
+  setItems(items){
     this.items = items;
     this.content.style.height = `${items.length * this.itemHeight}px`;
-    this.updateVisibleItems();
+    this.update();
   }
+  update(){
+    const top = this.container.scrollTop;
+    const h   = this.container.clientHeight;
+    const start = Math.floor(top / this.itemHeight);
+    const end   = Math.min(Math.ceil((top + h)/this.itemHeight), this.items.length);
 
-  updateVisibleItems() {
-    const scrollTop = this.container.scrollTop;
-    const viewportHeight = this.container.clientHeight;
-    
-    const startIndex = Math.floor(scrollTop / this.itemHeight);
-    const endIndex = Math.min(
-      Math.ceil((scrollTop + viewportHeight) / this.itemHeight),
-      this.items.length
-    );
-    
-    const fragment = document.createDocumentFragment();
-    const newVisibleItems = new Set();
-    
-    for (let i = startIndex; i < endIndex; i++) {
-      newVisibleItems.add(i);
-      if (!this.visibleItems.has(i)) {
+    const frag = document.createDocumentFragment();
+    const newSet = new Set();
+
+    for (let i=start;i<end;i++){
+      newSet.add(i);
+      if (!this.visible.has(i)){
         const div = document.createElement('div');
         div.style.position = 'absolute';
         div.style.top = `${i * this.itemHeight}px`;
-        div.style.width = '100%';
         div.style.height = `${this.itemHeight}px`;
+        div.style.width = '100%';
         div.textContent = this.items[i];
-        fragment.appendChild(div);
+        frag.appendChild(div);
       }
     }
-    
-    // Remove items that are no longer visible
-    this.content.querySelectorAll('div').forEach(div => {
-      const index = Math.floor(parseInt(div.style.top) / this.itemHeight);
-      if (!newVisibleItems.has(index)) {
-        div.remove();
-      }
+
+    this.content.querySelectorAll('div').forEach(div=>{
+      const idx = Math.floor(parseInt(div.style.top)/this.itemHeight);
+      if (!newSet.has(idx)) div.remove();
     });
-    
-    this.content.appendChild(fragment);
-    this.visibleItems = newVisibleItems;
-  }
 
-  onScroll() {
-    if (Math.abs(this.container.scrollTop - this.lastScrollPosition) > this.itemHeight) {
-      this.updateVisibleItems();
-      this.lastScrollPosition = this.container.scrollTop;
-    }
+    this.content.appendChild(frag);
+    this.visible = newSet;
   }
-
-  destroy() {
-    this.resizeObserver.disconnect();
+  onScroll(){ this.update(); }
+  destroy(){
+    this.observer.disconnect();
     this.container.removeEventListener('scroll', this.onScroll);
   }
 }
 
+/* ========= Main App ========= */
 class DatabaseChecker {
-  constructor() {
-    this.fileProcessor = new FileProcessor();
-    this.virtualScroller = new VirtualScroller(document.getElementById('databaseContent'));
-    this.setupEventListeners();
+  constructor(){
+    this.fp = new FileProcessor();
+    this.vs = new VirtualScroller(document.getElementById('databaseContent'));
     this.currentLines = [];
     this.processedLinesCount = 0;
+    this.isChecking = false;
+
+    // Default schema (akan di-detect ulang saat file load)
+    this.schema = { cmpgIdx:0, emailIdx:1, unitIdx:2, textIdx:3 };
+
+    // Modal refs
+    this.modal        = document.getElementById('searchModal');
+    this.emailInput   = document.getElementById('emailQuery');
+    this.emailInfoEl  = document.getElementById('emailMatchesInfo');
+    this.rowsEl       = document.getElementById('krhredRows');
+    this.schemaInfoEl = document.getElementById('schemaInfo');
+
+    this.bindEvents();
   }
 
-  setupEventListeners() {
-    document.getElementById('folderOpenBtn').addEventListener('click', () => this.openFolder());
+  bindEvents(){
+    document.getElementById('folderOpenBtn').addEventListener('click', ()=>this.openFolder());
+
     this.checkBtn = document.getElementById('checkBtn');
-    this.checkBtn.addEventListener('click', () => {
-      if (this.isChecking) {
-        this.stopChecking();
-      } else {
-        this.checkDatabase();
-      }
+    this.checkBtn.addEventListener('click', ()=>{
+      if (this.isChecking){ this.stopChecking(); } else { this.checkDatabase(); }
     });
-    document.getElementById('loadMoreBtn').addEventListener('click', () => this.loadMore());
+
+    document.getElementById('loadMoreBtn').addEventListener('click', ()=>this.loadMore());
+
+    // Modal & search
+    document.getElementById('openSearchModalBtn').addEventListener('click', ()=>this.openSearchModal());
+    document.getElementById('modalCloseBtn').addEventListener('click', ()=>this.closeSearchModal());
+    document.getElementById('modalBackdrop').addEventListener('click', ()=>this.closeSearchModal());
+    document.getElementById('searchEmailBtn').addEventListener('click', ()=>this.performEmailSearch());
+    this.emailInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') this.performEmailSearch(); });
+
+    // Selection sync (fallback)
+    document.addEventListener('click', (e)=>{
+      const item = e.target.closest('#fileList li, #fileList button.file');
+      if (!item) return;
+      document.querySelectorAll('#fileList .selected,[aria-selected="true"]').forEach(x=>{
+        x.classList.remove('selected'); x.removeAttribute('aria-selected');
+      });
+      item.classList.add('selected'); item.setAttribute('aria-selected','true');
+    });
+
+    // Esc to close modal
+    window.addEventListener('keydown', (e)=>{
+      if (e.key === 'Escape' && this.modalIsOpen()) this.closeSearchModal();
+    });
   }
 
-  async checkDatabase() {
-    if (this.currentLines.length === 0) {
-      alert('Please load a file first');
+  /* ===== Modal ===== */
+  modalIsOpen(){ return this.modal && (this.modal.hasAttribute('open') || this.modal.classList.contains('show')); }
+  openSearchModal(){
+    if (!this.currentLines.length){ alert('Please load a file first'); return; }
+    this.detectSchema();
+    this.updateSchemaInfo();
+    this.rowsEl.innerHTML = '';
+    this.emailInfoEl.textContent = 'Masukkan email lalu tekan Search.';
+    this.modal.setAttribute('open','');
+    this.modal.classList.add('show');
+    setTimeout(()=>this.emailInput?.focus(),0);
+  }
+  closeSearchModal(){
+    this.modal.classList.remove('show');
+    this.modal.removeAttribute('open');
+  }
+  updateSchemaInfo(){
+    const {cmpgIdx,emailIdx,unitIdx,textIdx} = this.schema;
+    this.schemaInfoEl.textContent = `Schema: CMPGID[${cmpgIdx}] • EMAIL[${emailIdx}] • KRHRED[${unitIdx}] • TEXT[${textIdx}]`;
+  }
+
+  /* ===== Schema auto-detect ===== */
+  detectSchema(){
+    const sample = this.currentLines.slice(0, Math.min(600, this.currentLines.length));
+    const votes = { email: new Map(), unit: new Map(), atSign: new Map() };
+    let maxCols = 0;
+
+    for (const line of sample){
+      const parts = line.split('|');
+      maxCols = Math.max(maxCols, parts.length);
+      parts.forEach((f, idx)=>{
+        const field = (f||'').trim();
+        // email vote (strict)
+        const isEmailStrict = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(field);
+        if (isEmailStrict) votes.email.set(idx, (votes.email.get(idx)||0)+1);
+        // fallback: contains '@'
+        if (field.includes('@')) votes.atSign.set(idx, (votes.atSign.get(idx)||0)+1);
+        // unit vote
+        if (unitRegex.test(field)) votes.unit.set(idx, (votes.unit.get(idx)||0)+1);
+      });
+    }
+    const maxKey = (m, def)=> m.size ? [...m.entries()].sort((a,b)=>b[1]-a[1])[0][0] : def;
+
+    let emailIdx = maxKey(votes.email, undefined);
+    if (emailIdx === undefined) emailIdx = maxKey(votes.atSign, 1); // fallback kalau email tidak valid
+    const unitIdx  = maxKey(votes.unit, 2);
+
+    let textIdx = unitIdx + 1;
+    if (textIdx >= maxCols) textIdx = Math.max(3, maxCols - 1);
+    const cmpgIdx = 0;
+
+    this.schema = { cmpgIdx, emailIdx, unitIdx, textIdx };
+  }
+
+  /* ===== Search & render per-entry list ===== */
+  performEmailSearch(){
+    if (!this.currentLines.length){ alert('Please load a file first'); return; }
+    const q = (this.emailInput.value || '').trim().toLowerCase();
+    const { emailIdx, unitIdx, textIdx } = this.schema;
+
+    const entries = []; // {unit, text, chars}
+    let totalMatches = 0;
+
+    for (let i=0;i<this.currentLines.length;i++){
+      const parts = this.currentLines[i].split('|');
+      const email = (parts[emailIdx]||'').trim().toLowerCase();
+      const unit  = (parts[unitIdx]  ||'').trim();
+      const text  = (parts[textIdx]  ||'').trim();
+
+      if (q && !email.includes(q)) continue; // filter email jika ada
+      if (!unitRegex.test(unit)) continue;
+
+      totalMatches++;
+      const normalizedUnit = unit.replace(/^krhred(?:_unit)?_/i, 'KRHRED_Unit_');
+      entries.push({ unit: normalizedUnit, text, chars: text.length });
+    }
+
+    // Info
+    this.emailInfoEl.textContent = q
+      ? `Email match: ${totalMatches.toLocaleString()} baris`
+      : `Semua baris: ${this.currentLines.length.toLocaleString()} (berisi KRHRED: ${entries.length.toLocaleString()})`;
+
+    // Render (batasi agar ringan)
+    this.rowsEl.innerHTML = '';
+    if (!entries.length){
+      this.rowsEl.innerHTML = `<div class="muted">Tidak ada KRHRED untuk filter ini.</div>`;
       return;
     }
-    console.log('checkDatabase started');
-    this.isChecking = true;
-    this.updateCheckButton();
-    this.showLoading(true);
+
+    const toRender = entries.slice(0, MAX_RENDER_ROWS);
+    const frag = document.createDocumentFragment();
+    for (const e of toRender){
+      const row = document.createElement('div');
+      row.className = 'krhred-row';
+      row.innerHTML = `
+        <code>${e.unit}</code>:
+        <span class="value">${escapeHtml(e.text)}</span>
+        <span class="count">[${e.chars}]</span>
+      `;
+      frag.appendChild(row);
+    }
+    this.rowsEl.appendChild(frag);
+
+    if (entries.length > toRender.length){
+      const more = document.createElement('div');
+      more.className = 'muted';
+      more.style.marginTop = '8px';
+      more.textContent = `Showing ${toRender.length.toLocaleString()} of ${entries.length.toLocaleString()} entries. Refine email filter to narrow results.`;
+      this.rowsEl.appendChild(more);
+    }
+  }
+
+  /* ===== Check database (existing) ===== */
+  async checkDatabase(){
+    if (!this.currentLines.length){ alert('Please load a file first'); return; }
+    this.isChecking = true; this.updateCheckButton(); this.showLoading(true);
 
     const unitsSet = new Set();
     const emptyDataUnits = new Set();
     const unitDetails = new Map();
-
     const chunkSize = 1000;
     this._stopRequested = false;
 
-    for (let i = 0; i < this.currentLines.length; i += chunkSize) {
-      if (this._stopRequested) {
-        break;
-      }
-      const chunk = this.currentLines.slice(i, Math.min(i + chunkSize, this.currentLines.length));
+    for (let i=0;i<this.currentLines.length;i+=chunkSize){
+      if (this._stopRequested) break;
+      const chunk = this.currentLines.slice(i, Math.min(i+chunkSize, this.currentLines.length));
 
-      chunk.forEach((line, index) => {
+      chunk.forEach((line, index)=>{
         const parts = line.split('|');
-        if (parts.length > 2) {
-          const unit = parts[2].trim();
-          const dataFieldRaw = parts[3] || '';
-          const dataField = dataFieldRaw.trim();
+        if (parts.length > 2){
+          const unit = (parts[2] || '').trim();
+          const dataRaw = parts[3] || '';
+          const data = dataRaw.trim();
 
-          if (/^KRHRED_Unit_\d+$/i.test(unit)) {
+          if (unitRegex.test(unit)){
             unitsSet.add(unit);
-            if (dataField === '' || dataFieldRaw !== dataField) {
+            if (data === '' || dataRaw !== data){
               emptyDataUnits.add(unit);
-              if (!unitDetails.has(unit)) {
-                unitDetails.set(unit, []);
-              }
-              unitDetails.get(unit).push({
-                lineNumber: i + index + 1,
-                lineText: line
-              });
+              if (!unitDetails.has(unit)) unitDetails.set(unit, []);
+              unitDetails.get(unit).push({ lineNumber: i+index+1, lineText: line });
             }
           }
         }
       });
 
-      this.updateProgress(Math.min(i + chunkSize, this.currentLines.length), this.currentLines.length);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      this.updatePercent(Math.min(i+chunkSize, this.currentLines.length), this.currentLines.length);
+      await new Promise(r=>setTimeout(r,0));
     }
 
-    this.displayResults(unitsSet, emptyDataUnits, unitDetails);
-    this.showLoading(false);
+    this.renderResults(unitsSet, emptyDataUnits, unitDetails);
+    this.showLoading(false); this.isChecking = false; this.updateCheckButton();
   }
 
-  stopChecking() {
+  stopChecking(){
     this._stopRequested = true;
     this.isChecking = false;
     this.updateCheckButton();
     this.showLoading(false);
   }
 
-  updateCheckButton() {
-    console.log('updateCheckButton called, isChecking:', this.isChecking);
-    if (this.isChecking) {
-      this.checkBtn.textContent = 'Stop';
-      // Hide processing indicator when button is Stop
-      const loadingIndicator = document.getElementById('loadingIndicator');
-      if (loadingIndicator) {
-        loadingIndicator.style.display = 'none';
-      }
+  updateCheckButton(){
+    if (this.isChecking){
+      this.checkBtn.innerHTML = `<i class="fa-solid fa-stop"></i><span>Stop</span>`;
+      document.getElementById('loadingIndicator').style.display = 'none';
     } else {
-      this.checkBtn.textContent = 'Check';
-      // Show processing indicator when button is Check
-      const loadingIndicator = document.getElementById('loadingIndicator');
-      if (loadingIndicator) {
-        loadingIndicator.style.display = 'inline-block';
-      }
+      this.checkBtn.innerHTML = `<i class="fa-solid fa-list-check"></i><span>Check</span>`;
+      document.getElementById('loadingIndicator').style.display = 'inline-block';
     }
   }
-
-  showLoading(show) {
-    const loadingWrapper = document.getElementById('loadingWrapper');
-    if (loadingWrapper !== null) {
-      loadingWrapper.style.visibility = show ? 'visible' : 'hidden';
-    }
+  showLoading(show){
+    const wrap = document.getElementById('loadingWrapper');
+    if (wrap) wrap.style.visibility = show ? 'visible' : 'hidden';
   }
-
-  updateProgress(current, total) {
-    const percent = (current / total) * 100;
-    const loadingWrapper = document.getElementById('loadingWrapper');
-    if (loadingWrapper) {
-      loadingWrapper.style.visibility = 'visible';
+  updatePercent(current, total){
+    const percent = (current/total)*100;
+    const wrap = document.getElementById('loadingWrapper');
+    if (wrap){
+      wrap.style.visibility = 'visible';
       document.getElementById('progressText').textContent = `${Math.round(percent)}%`;
     }
   }
 
-  async openFolder() {
-    try {
+  /* ===== Folder & file ===== */
+  async openFolder(){
+    try{
       const dirHandle = await window.showDirectoryPicker();
       await this.buildFileTree(dirHandle);
-    } catch (err) {
+    } catch(err){
       console.error('Error opening folder:', err);
       alert('Error opening folder: ' + err.message);
     }
   }
 
-  async buildFileTree(dirHandle, parentUl = document.getElementById('fileList').querySelector('ul')) {
+  async buildFileTree(dirHandle, parentUl = document.querySelector('#fileList ul')){
     parentUl.innerHTML = '';
     const entries = [];
-    for await (const entry of dirHandle.values()) {
-      entries.push(entry);
-    }
-    
-    entries.sort((a, b) => a.name.localeCompare(b.name));
-    
-    const fragment = document.createDocumentFragment();
-    for (const entry of entries) {
-      const li = document.createElement('li');
-      li.textContent = entry.name;
-      li.title = entry.name;
-      
-      if (entry.kind === 'directory') {
-        // Skip folders entirely - do not add to sidebar
-        continue;
-      } else if (entry.kind === 'file' && entry.name.includes('CustAttr.txt')) {
-        li.classList.add('file');
-        li.addEventListener('click', async (e) => {
+    for await (const entry of dirHandle.values()) entries.push(entry);
+    entries.sort((a,b)=>a.name.localeCompare(b.name));
+
+    const frag = document.createDocumentFragment();
+    for (const entry of entries){
+      if (entry.kind === 'file' && entry.name.includes('CustAttr.txt')){
+        const li = document.createElement('li');
+        li.className = 'file';
+        li.textContent = entry.name;
+        li.title = entry.name;
+        li.addEventListener('click', async (e)=>{
           e.stopPropagation();
           await this.loadFile(entry);
-          document.querySelectorAll('#fileList li').forEach(el => el.classList.remove('selected'));
+          document.querySelectorAll('#fileList li').forEach(el=>el.classList.remove('selected'));
           li.classList.add('selected');
         });
-      } else {
-        continue;
+        frag.appendChild(li);
       }
-      
-      fragment.appendChild(li);
     }
-    
-    parentUl.appendChild(fragment);
+    parentUl.appendChild(frag);
   }
 
-  clearResults() {
-    // Clear previous results
+  clearResults(){
     document.getElementById('krhredResults').innerHTML = '';
     document.getElementById('krhredDetails').innerHTML = '';
     document.getElementById('loadMoreBtn').style.display = 'none';
   }
 
-  async loadFile(fileHandle) {
-    try {
-      // Clear previous results first
+  async loadFile(fileHandle){
+    try{
       this.clearResults();
-      
       this.showLoading(true);
       const file = await fileHandle.getFile();
-      
-      if (file.size > MAX_MEMORY_USAGE) {
-        if (!confirm(`This file is large (${(file.size / 1024 / 1024).toFixed(1)}MB). Loading it may affect performance. Continue?`)) {
-          this.showLoading(false);
-          return;
-        }
+
+      if (file.size > MAX_MEMORY_USAGE){
+        const ok = confirm(`This file is large (${(file.size/1024/1024).toFixed(1)}MB). Continue?`);
+        if (!ok){ this.showLoading(false); return; }
       }
-      
-      const content = await this.fileProcessor.readFile(file, (loaded, total) => {
-        this.updateProgress(loaded, total);
-      });
-      
-      this.currentLines = content.split('\n');
+
+      this.currentLines = await this.fp.readFile(file, (loaded,total)=>this.updatePercent(loaded,total));
       this.processedLinesCount = Math.min(this.currentLines.length, LINES_PER_PAGE);
-      this.virtualScroller.setItems([]); // Clear previous items first
-      this.virtualScroller.setItems(this.currentLines.slice(0, this.processedLinesCount));
-      
-      document.getElementById('loadMoreBtn').style.display = 
-        this.currentLines.length > LINES_PER_PAGE ? 'block' : 'none';
-      
-    } catch (err) {
+      this.vs.setItems([]); // clear
+      this.vs.setItems(this.currentLines.slice(0, this.processedLinesCount));
+
+      document.getElementById('loadMoreBtn').style.display =
+        this.currentLines.length > LINES_PER_PAGE ? 'inline-flex' : 'none';
+
+      // detect schema once file loaded
+      this.detectSchema();
+
+    } catch(err){
       console.error('Error loading file:', err);
       alert('Error loading file: ' + err.message);
     } finally {
@@ -359,207 +416,92 @@ class DatabaseChecker {
     }
   }
 
-  loadMore() {
-    const nextBatch = this.currentLines.slice(
-      this.processedLinesCount,
-      this.processedLinesCount + LINES_PER_PAGE
-    );
-    
-    if (nextBatch.length > 0) {
-      this.processedLinesCount += nextBatch.length;
-      this.virtualScroller.setItems(this.currentLines.slice(0, this.processedLinesCount));
-      
+  loadMore(){
+    const next = this.currentLines.slice(this.processedLinesCount, this.processedLinesCount + LINES_PER_PAGE);
+    if (next.length){
+      this.processedLinesCount += next.length;
+      this.vs.setItems(this.currentLines.slice(0, this.processedLinesCount));
       document.getElementById('loadMoreBtn').style.display =
-        this.processedLinesCount < this.currentLines.length ? 'block' : 'none';
+        this.processedLinesCount < this.currentLines.length ? 'inline-flex' : 'none';
     }
   }
 
-  async checkDatabase() {
-    if (this.currentLines.length === 0) {
-      alert('Please load a file first');
-      return;
-    }
-    
-    this.showLoading(true);
-    const unitsSet = new Set();
-    const emptyDataUnits = new Set();
-    const unitDetails = new Map();
-    
-    // Process in chunks to avoid UI blocking
-    const chunkSize = 1000;
-    for (let i = 0; i < this.currentLines.length; i += chunkSize) {
-      const chunk = this.currentLines.slice(i, Math.min(i + chunkSize, this.currentLines.length));
-      
-      chunk.forEach((line, index) => {
-        const parts = line.split('|');
-        if (parts.length > 2) {
-          const unit = parts[2].trim();
-          const dataFieldRaw = parts[3] || '';
-          const dataField = dataFieldRaw.trim();
-          
-          if (/^KRHRED_Unit_\d+$/i.test(unit)) {
-            unitsSet.add(unit);
-            if (dataField === '' || dataFieldRaw !== dataField) {
-              emptyDataUnits.add(unit);
-              if (!unitDetails.has(unit)) {
-                unitDetails.set(unit, []);
-              }
-              unitDetails.get(unit).push({
-                lineNumber: i + index + 1,
-                lineText: line
-              });
-            }
-          }
-        }
-      });
-      
-      this.updateProgress(Math.min(i + chunkSize, this.currentLines.length), this.currentLines.length);
-      await new Promise(resolve => setTimeout(resolve, 0));
-    }
-    
-    this.displayResults(unitsSet, emptyDataUnits, unitDetails);
-    this.showLoading(false);
-  }
-
-  displayResults(unitsSet, emptyDataUnits, unitDetails) {
-    const matches = Array.from(unitsSet).sort((a, b) => {
-      const numA = parseInt(a.match(/\d+/)[0], 10);
-      const numB = parseInt(b.match(/\d+/)[0], 10);
-      return numA - numB;
-    });
-    
+  renderResults(unitsSet, emptyDataUnits, unitDetails){
     const resultsDiv = document.getElementById('krhredResults');
     const detailsDiv = document.getElementById('krhredDetails');
-    
-    const totalDatabaseCount = this.countUniqueCMPGIDs(this.currentLines);
-    
-    if (matches.length > 0) {
-      const fragment = document.createDocumentFragment();
+
+    const matches = Array.from(unitsSet).sort((a,b)=>{
+      const na = parseInt(a.match(/\d+/)[0],10);
+      const nb = parseInt(b.match(/\d+/)[0],10);
+      return na - nb;
+    });
+
+    const totalDB = this.countUniqueCMPGIDs(this.currentLines);
+    resultsDiv.innerHTML = '';
+    detailsDiv.innerHTML = '';
+
+    if (matches.length){
       const container = document.createElement('div');
-      container.style.cssText = 'display: flex; flex-wrap: wrap; max-height: 10em; overflow-y: auto; gap: 8px; margin-top: 8px;';
-      
-      matches.forEach(unit => {
+      container.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;max-height:10em;overflow:auto;margin-top:8px;';
+      matches.forEach(unit=>{
         const span = document.createElement('span');
+        const isEmpty = emptyDataUnits.has(unit);
         span.style.cssText = `
-          color: ${emptyDataUnits.has(unit) ? 'red' : 'green'};
-          padding: 2px 6px;
-          border-radius: 4px;
-          background-color: ${emptyDataUnits.has(unit) ? '#ffe0e0' : '#e0ffe0'};
+          color:${isEmpty ? 'red':'#22c55e'};
+          padding:2px 6px;border-radius:4px;
+          background:${isEmpty ? '#3b0f0f':'#0f2d17'};
         `;
         span.textContent = unit;
         container.appendChild(span);
       });
-      
-      fragment.appendChild(container);
-      resultsDiv.innerHTML = '';
-      resultsDiv.appendChild(fragment);
+      resultsDiv.append(container);
 
-      // Add total database info below KRHRED units
-      const totalDatabaseDiv = document.createElement('div');
-      totalDatabaseDiv.style.cssText = 'margin-top: 10px; font-weight: normal;';
-      totalDatabaseDiv.textContent = `Total database: ${totalDatabaseCount}`;
-      resultsDiv.appendChild(totalDatabaseDiv);
-      
-      // Display details for empty units
-      const detailsFragment = document.createDocumentFragment();
-      const header = document.createElement('h3');
-      header.textContent = 'KRHRED Unit Details';
-      detailsFragment.appendChild(header);
-      
-      Array.from(emptyDataUnits)
-        .sort((a, b) => {
-          const numA = parseInt(a.match(/\d+/)[0], 10);
-          const numB = parseInt(b.match(/\d+/)[0], 10);
-          return numA - numB;
-        })
-        .forEach(unit => {
-          const details = unitDetails.get(unit);
-          const unitDiv = document.createElement('div');
-          unitDiv.innerHTML = `<strong>${unit}</strong>:`;
-          detailsFragment.appendChild(unitDiv);
-          
-          details.forEach(d => {
-            const lineDiv = document.createElement('div');
-            lineDiv.style.cssText = 'font-family: monospace; white-space: pre-wrap;';
-            lineDiv.textContent = `Line ${d.lineNumber}: ${d.lineText}`;
-            detailsFragment.appendChild(lineDiv);
-          });
+      const totalDiv = document.createElement('div');
+      totalDiv.style.cssText = 'margin-top:10px;';
+      totalDiv.textContent = `Total database: ${totalDB}`;
+      resultsDiv.append(totalDiv);
+
+      const header = document.createElement('h3'); header.textContent = 'KRHRED Unit Details';
+      detailsDiv.append(header);
+
+      Array.from(emptyDataUnits).sort((a,b)=>{
+        const na = parseInt(a.match(/\d+/)[0],10);
+        const nb = parseInt(b.match(/\d+/)[0],10);
+        return na - nb;
+      }).forEach(unit=>{
+        const block = document.createElement('div');
+        block.innerHTML = `<strong>${unit}</strong>:`;
+        detailsDiv.append(block);
+
+        unitDetails.get(unit).forEach(d=>{
+          const lineDiv = document.createElement('div');
+          lineDiv.style.cssText = 'font-family:monospace;white-space:pre-wrap;';
+          lineDiv.textContent = `Line ${d.lineNumber}: ${d.lineText}`;
+          detailsDiv.append(lineDiv);
         });
-      
-      detailsDiv.innerHTML = '';
-      detailsDiv.appendChild(detailsFragment);
+      });
     } else {
-      // Show total database count even if no KRHRED units found
-      resultsDiv.textContent = `Total database: ${totalDatabaseCount}`;
-      detailsDiv.textContent = '';
+      resultsDiv.textContent = `Total database: ${totalDB}`;
     }
   }
 
-  countUniqueCMPGIDs(lines) {
-    const cmpgIDs = new Set();
-    lines.forEach(line => {
-      const parts = line.split('|');
-      if (parts.length > 0) {
-        const cmpgID = parts[0].trim();
-        if (cmpgID) {
-          cmpgIDs.add(cmpgID);
-        }
-      }
-    });
-    return cmpgIDs.size;
+  countUniqueCMPGIDs(lines){
+    const s = new Set();
+    for (const line of lines){
+      const cmpg = (line.split('|')[0] || '').trim();
+      if (cmpg) s.add(cmpg);
+    }
+    return s.size;
   }
-
 }
 
-// Initialize the application
+/* ========= Utils ========= */
+function escapeHtml(str){
+  return (str ?? '').replace(/[&<>"']/g, s => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[s]));
+}
+
+/* ========= Boot ========= */
 const app = new DatabaseChecker();
-
-// Clean up on page unload
-window.addEventListener('beforeunload', () => {
-  app.virtualScroller.destroy();
-});
-
-// State persistence - simple approach
-function saveState() {
-  const state = {
-    hasLoadedFile: app.currentLines.length > 0,
-    resultsHTML: document.getElementById('krhredResults').innerHTML,
-    detailsHTML: document.getElementById('krhredDetails').innerHTML
-  };
-  localStorage.setItem('databaseChecker_state', JSON.stringify(state));
-}
-
-function loadState() {
-  const saved = localStorage.getItem('databaseChecker_state');
-  if (saved) {
-    try {
-      const state = JSON.parse(saved);
-      
-      // Restore results if available
-      if (state.resultsHTML) {
-        document.getElementById('krhredResults').innerHTML = state.resultsHTML;
-      }
-      if (state.detailsHTML) {
-        document.getElementById('krhredDetails').innerHTML = state.detailsHTML;
-      }
-      
-      // Show message if file was loaded before
-      if (state.hasLoadedFile) {
-        const folderBtn = document.getElementById('folderOpenBtn');
-        folderBtn.textContent = 'Reopen Folder';
-        folderBtn.style.backgroundColor = '#ff6b6b';
-      }
-    } catch (e) {
-      console.error('Error loading state:', e);
-    }
-  }
-}
-
-// Load state when page loads
-window.addEventListener('load', loadState);
-
-// Save state before leaving page
-window.addEventListener('beforeunload', () => {
-  saveState();
-  app.virtualScroller.destroy();
-});
+window.addEventListener('beforeunload', ()=>app.vs.destroy());
