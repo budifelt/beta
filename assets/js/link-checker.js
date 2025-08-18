@@ -2,8 +2,6 @@
 const btn = document.getElementById('checkBtn');
 const input = document.getElementById('urlInput');
 const result = document.getElementById('result');
-const canvas = document.getElementById('statusCanvas');
-const ctx = canvas.getContext('2d');
 const modeDirect = document.getElementById('mode-direct');
 const modeProxy  = document.getElementById('mode-proxy');
 
@@ -19,22 +17,9 @@ const LS_KEY = 'linkChecker.history.v1';
 let historyData = []; // {id,url,title,status,code,ts,mode}
 
 function saveLS(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(historyData)); }catch{} }
-function loadLS(){
-  try{ historyData = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
-  catch{ historyData = []; }
-}
+function loadLS(){ try{ historyData = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch{ historyData = []; } }
 
 /* ===== helpers ===== */
-function draw(color, text){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = color; ctx.beginPath();
-  ctx.arc(canvas.width/2, canvas.height/2, 90, 0, Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.font='bold 22px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(text, canvas.width/2, canvas.height/2);
-}
 function setStatus(state, msg){
   result.className = 'status ' + state;
   const icons = {wait:'circle-question', live:'circle-check', err:'circle-xmark'};
@@ -47,51 +32,42 @@ function normalizeURL(u){
   return url;
 }
 function toProxy(u){ return 'https://r.jina.ai/' + u; }
-function nowStr(){ return new Date().toLocaleString(); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function decodeEntities(s){ const t=document.createElement('textarea'); t.innerHTML=s; return t.value; }
 
-/* ===== Title fetch (HTML <title>, og:title, lalu Markdown/H1 dari r.jina.ai) ===== */
+/* ===== Title fetch ===== */
 async function fetchTitle(url){
   try{
     const res = await fetch(toProxy(url), { method:'GET' });
     if(!res.ok) throw new Error('proxy '+res.status);
     const text = await res.text();
 
-    // 1) Pure HTML <title>
     const mTitle = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
     if (mTitle && mTitle[1]) return decodeEntities(mTitle[1]).replace(/\s+/g,' ').trim();
 
-    // 2) og:title
     const mOg = text.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["'][^>]*>/i);
     if (mOg && mOg[1]) return decodeEntities(mOg[1]).replace(/\s+/g,' ').trim();
 
-    // 3) r.jina.ai sering mengubah ke Markdown; ambil line "# Heading"
     const mdH1 = text.match(/^\s*#\s+(.+)\s*$/m);
     if (mdH1 && mdH1[1]) return mdH1[1].replace(/\s+/g,' ').trim();
 
-    // 4) Ambil baris konten pertama yang pendek & bermakna
     const firstLine = (text.split(/\r?\n/).map(s=>s.trim()).find(s => s && s.length<=120)) || '';
     if (firstLine) return firstLine;
-
   }catch{}
 
-  // 5) Fallback hostname
   try{ return new URL(url).hostname; }catch{ return url; }
 }
 
-/* ===== history list UI ===== */
-function liById(id){ return historyList.querySelector(`.history-item[data-id="${id}"]`); }
-
+/* ===== history UI ===== */
 function makeItemEl(rec){
   const li = document.createElement('li');
   li.className = 'history-item';
   li.dataset.id = rec.id;
   li.dataset.url = rec.url;
 
-  // main: title + url (URL muncul saat hover sesuai CSS)
   const main = document.createElement('div');
-  main.className = 'item-main';
+  main.className = 'item-main copyable';
+  main.setAttribute('data-tip', 'Click to copy URL');
   const titleEl = document.createElement('div');
   titleEl.className = 'history-title-text';
   titleEl.textContent = rec.title || 'Loading title…';
@@ -131,20 +107,20 @@ function renderAll(){
   historyList.innerHTML = '';
   const q = (filterInput?.value || '').toLowerCase().trim();
   let visible = 0;
-
-  for(const rec of historyData.slice().reverse()){ // newest first
+  for(const rec of historyData.slice().reverse()){
     const hay = `${rec.title} ${rec.url} ${rec.status} ${rec.code}`.toLowerCase();
     if(q && !hay.includes(q)) continue;
     historyList.append(makeItemEl(rec));
     visible++;
   }
   if (countIndicator) countIndicator.textContent = `${visible} / ${historyData.length} items`;
+  reevaluateAuto(); // update auto-check setelah render
 }
 
 function upsertRecord(rec){
   const idx = historyData.findIndex(r => r.id === rec.id);
   if(idx >= 0) historyData[idx] = rec; else historyData.push(rec);
-  saveLS(); renderAll();
+  saveLS(); renderAll(); // renderAll memanggil reevaluateAuto()
 }
 
 function updateBadge(id, state, code){
@@ -159,8 +135,8 @@ function updateBadge(id, state, code){
 async function ensureTitle(id){
   const rec = historyData.find(r=>r.id===id);
   if(!rec) return;
-
   const isPlaceholder = !rec.title || /loading title/i.test(rec.title);
+
   let need = isPlaceholder;
   if(!need){
     try{
@@ -178,7 +154,6 @@ async function ensureTitle(id){
 /* ===== core check ===== */
 async function checkOnce(url, mode, onUpdate){
   setStatus('wait','Sedang mengecek...');
-  draw('#6b7280','WAIT');
   const direct = (mode === 'direct');
 
   try{
@@ -187,31 +162,37 @@ async function checkOnce(url, mode, onUpdate){
       try { res = await fetch(url, {method:'HEAD'}); }
       catch { res = await fetch(url, {method:'GET'}); }
       if (res.ok){
-        setStatus('live','Link Live'); draw('#22c55e','LIVE');
-        onUpdate?.('live', res.status); return {ok:true,status:res.status};
+        setStatus('live','Link Live');
+        onUpdate?.('live', res.status);
+        return {ok:true,status:res.status};
       } else {
-        setStatus('err',`Error: ${res.status || 'Unknown'}`); draw('#ef4444','ERR');
-        onUpdate?.('err', res.status || 'ERR'); return {ok:false,status:res.status};
+        setStatus('err',`Error: ${res.status || 'Unknown'}`);
+        onUpdate?.('err', res.status || 'ERR');
+        return {ok:false,status:res.status};
       }
     } else {
       const res = await fetch(toProxy(url), {method:'GET'});
       if(res.ok){
         const text = await res.text();
         if(text && text.length>0){
-          setStatus('live','Link Live (via Proxy)'); draw('#22c55e','LIVE');
-          onUpdate?.('live', 200); return {ok:true,status:200};
+          setStatus('live','Link Live (via Proxy)');
+          onUpdate?.('live', 200);
+          return {ok:true,status:200};
         }else{
-          setStatus('err','Tidak bisa diakses (empty)'); draw('#ef4444','ERR');
-          onUpdate?.('err', 'EMPTY'); return {ok:false,status:0};
+          setStatus('err','Tidak bisa diakses (empty)');
+          onUpdate?.('err', 'EMPTY');
+          return {ok:false,status:0};
         }
       }else{
-        setStatus('err',`Error Proxy: ${res.status}`); draw('#ef4444','ERR');
-        onUpdate?.('err', res.status); return {ok:false,status:res.status};
+        setStatus('err',`Error Proxy: ${res.status}`);
+        onUpdate?.('err', res.status);
+        return {ok:false,status:res.status};
       }
     }
   }catch{
-    setStatus('err','Tidak bisa diakses'); draw('#ef4444','ERR');
-    onUpdate?.('err', 'ERR'); return {ok:false,status:0};
+    setStatus('err','Tidak bisa diakses');
+    onUpdate?.('err', 'ERR');
+    return {ok:false,status:0};
   }
 }
 
@@ -232,23 +213,41 @@ btn.addEventListener('click', async () => {
   input.value = '';
 });
 
+/* klik item untuk copy (kiri/area judul-URL) + tombol lainnya */
 historyList.addEventListener('click', async (e)=>{
-  const li = e.target.closest('.history-item'); if(!li) return;
+  const li = e.target.closest('.history-item');
+  if(!li) return;
   const id = li.dataset.id;
-  const rec = historyData.find(r=>r.id===id); if(!rec) return;
+  const rec = historyData.find(r=>r.id===id);
+  if(!rec) return;
 
   if(e.target.closest('.remove')){
     historyData = historyData.filter(r=>r.id!==id);
-    saveLS(); renderAll(); return;
+    saveLS(); renderAll();
+    return;
   }
   if(e.target.closest('.recheck')){
     const mode = modeDirect.checked ? 'direct' : 'proxy';
     rec.mode = mode; upsertRecord(rec);
     await checkOnce(rec.url, mode, (state, code)=> updateBadge(id, state, code));
     ensureTitle(id);
+    return;
+  }
+  if(e.target.closest('a')) return; // klik tombol Open -> default
+
+  // klik di area main => copy URL
+  const main = e.target.closest('.item-main');
+  if(main){
+    try{
+      await navigator.clipboard.writeText(rec.url);
+      const oldTip = main.getAttribute('data-tip') || 'Click to copy URL';
+      main.setAttribute('data-tip','Copied!');
+      setTimeout(()=> main.setAttribute('data-tip', oldTip), 900);
+    }catch{}
   }
 });
 
+// clear & recheck all
 clearListBtn.addEventListener('click', ()=>{
   if(!confirm('Hapus semua item?')) return;
   historyData = []; saveLS(); renderAll();
@@ -323,27 +322,55 @@ exportCsvBtn?.addEventListener('click', ()=>{
   a.download = `link-history-${ts}.csv`; document.body.appendChild(a); a.click(); a.remove();
 });
 
-/* ===== Auto-check berkala: hanya yang tampil, tiap 30s (round-robin) ===== */
+/* ===== Auto-check hanya item merah; stop jika semua hijau; start lagi jika ada merah ===== */
+const AUTO_MS = 30000;
+let autoTimer = null;
 let autoIdx = 0;
-setInterval(async ()=>{
-  const ids = Array.from(historyList.children).map(li => li.dataset.id); // hanya visible di DOM
-  if (!ids.length) return;
-  const id = ids[autoIdx % ids.length]; autoIdx++;
 
+function visibleIds(){
+  return Array.from(historyList.children).map(li => li.dataset.id);
+}
+function visibleRedIds(){
+  const ids = visibleIds();
+  return ids.filter(id => {
+    const rec = historyData.find(r=>r.id===id);
+    return rec && rec.status === 'err';
+  });
+}
+function stopAuto(){
+  if(autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+}
+function startAuto(){
+  if(autoTimer) return;
+  const reds = visibleRedIds();
+  if(!reds.length) return;
+  autoTimer = setInterval(runAutoTick, AUTO_MS);
+}
+function reevaluateAuto(){
+  const reds = visibleRedIds();
+  if(reds.length){ startAuto(); }
+  else{ stopAuto(); }
+}
+async function runAutoTick(){
+  const reds = visibleRedIds();
+  if(!reds.length){ stopAuto(); return; } // semua hijau → berhenti
+
+  const id = reds[autoIdx % reds.length]; autoIdx++;
   const rec = historyData.find(r=>r.id===id); if(!rec) return;
+
   const mode = modeDirect.checked ? 'direct' : 'proxy';
   rec.mode = mode; upsertRecord(rec);
-
   await checkOnce(rec.url, mode, (state, code)=> updateBadge(rec.id, state, code));
-  // coba update title kalau masih hostname/placeholder
   ensureTitle(rec.id);
-}, 30000);
+
+  // setelah cek, evaluasi lagi (bisa jadi hijau semua)
+  reevaluateAuto();
+}
 
 /* ===== boot ===== */
 (function init(){
   loadLS();
   renderAll();
-  draw('#6b7280','WAIT');
-  // coba lengkapi title untuk item lama
+  // lengkapi title untuk item lama
   for (const rec of historyData) ensureTitle(rec.id);
 })();
