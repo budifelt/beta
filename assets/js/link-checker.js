@@ -35,26 +35,75 @@ function toProxy(u){ return 'https://r.jina.ai/' + u; }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function decodeEntities(s){ const t=document.createElement('textarea'); t.innerHTML=s; return t.value; }
 
-/* ===== Title fetch ===== */
+/* ===== content parsers ===== */
+function parseTitleFromText(text){
+  // <title>
+  const mTitle = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  if (mTitle && mTitle[1]) return decodeEntities(mTitle[1]).replace(/\s+/g,' ').trim();
+  // og:title
+  const mOg = text.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["'][^>]*>/i);
+  if (mOg && mOg[1]) return decodeEntities(mOg[1]).replace(/\s+/g,' ').trim();
+  // Markdown H1 (r.jina.ai kadang merender HTML -> MD)
+  const mdH1 = text.match(/^\s*#\s+(.+)\s*$/m);
+  if (mdH1 && mdH1[1]) return mdH1[1].replace(/\s+/g,' ').trim();
+  // first meaningful short line
+  const firstLine = (text.split(/\r?\n/).map(s=>s.trim()).find(s => s && s.length<=120)) || '';
+  if (firstLine) return firstLine;
+  return '';
+}
+
+/* Heuristik deteksi error dari isi halaman (Proxy mode) */
+function inferStatusFromText(text){
+  // Kalau sangat pendek dan tidak ada <html>, kemungkinan error
+  const looksHtml = /<!doctype html|<html[\s>]/i.test(text);
+  const title = parseTitleFromText(text) || '';
+  const hay = `${title}\n${text}`.toLowerCase();
+
+  const ERR_PATTERNS = [
+    /\b(404|403|401|500|502|503|504)\b/g,
+    /page\s+not\s+found/gi,
+    /not\s+found/gi,
+    /cannot\s+(be\s+)?found/gi,
+    /forbidden/gi,
+    /access\s+denied/gi,
+    /access\s+is\s+denied/gi,
+    /unauthorized/gi,
+    /doesn[’']?t\s+exist/gi,
+    /bad\s+request/gi,
+    /service\s+unavailable/gi,
+    /maintenance/gi
+  ];
+
+  // jika title mengandung 404/403/… atau frasa error, anggap error
+  const titleErr = /\b(404|403|401|500|502|503|504)\b/.test(title.toLowerCase()) ||
+                   /(not\s+found|forbidden|access\s+denied)/i.test(title);
+
+  let matched = '';
+  if (titleErr) matched = 'title-error';
+  else {
+    for (const re of ERR_PATTERNS){
+      if (re.test(hay)){ matched = re.toString(); break; }
+    }
+  }
+
+  if (matched) return { ok:false, code:'PROXY_ERR', reason:matched, title };
+  // kalau tidak ada indikasi error & ada "html/body", anggap OK
+  if (looksHtml || title) return { ok:true, code:200, reason:'HTML_OK', title };
+  // fallback konten raw tapi non-kosong -> OK tipis
+  if (text && text.length > 200) return { ok:true, code:200, reason:'TEXT_OK', title };
+
+  return { ok:false, code:'PROXY_EMPTY', reason:'empty', title };
+}
+
+/* ===== Title fetch (via proxy) ===== */
 async function fetchTitle(url){
   try{
     const res = await fetch(toProxy(url), { method:'GET' });
     if(!res.ok) throw new Error('proxy '+res.status);
     const text = await res.text();
-
-    const mTitle = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-    if (mTitle && mTitle[1]) return decodeEntities(mTitle[1]).replace(/\s+/g,' ').trim();
-
-    const mOg = text.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["'][^>]*>/i);
-    if (mOg && mOg[1]) return decodeEntities(mOg[1]).replace(/\s+/g,' ').trim();
-
-    const mdH1 = text.match(/^\s*#\s+(.+)\s*$/m);
-    if (mdH1 && mdH1[1]) return mdH1[1].replace(/\s+/g,' ').trim();
-
-    const firstLine = (text.split(/\r?\n/).map(s=>s.trim()).find(s => s && s.length<=120)) || '';
-    if (firstLine) return firstLine;
+    const title = parseTitleFromText(text);
+    if (title) return title;
   }catch{}
-
   try{ return new URL(url).hostname; }catch{ return url; }
 }
 
@@ -114,13 +163,13 @@ function renderAll(){
     visible++;
   }
   if (countIndicator) countIndicator.textContent = `${visible} / ${historyData.length} items`;
-  reevaluateAuto(); // update auto-check setelah render
+  reevaluateAuto(); // sync auto-check setelah render
 }
 
 function upsertRecord(rec){
   const idx = historyData.findIndex(r => r.id === rec.id);
   if(idx >= 0) historyData[idx] = rec; else historyData.push(rec);
-  saveLS(); renderAll(); // renderAll memanggil reevaluateAuto()
+  saveLS(); renderAll();
 }
 
 function updateBadge(id, state, code){
@@ -171,22 +220,23 @@ async function checkOnce(url, mode, onUpdate){
         return {ok:false,status:res.status};
       }
     } else {
+      // Proxy: nilai dari isi halaman (heuristik)
       const res = await fetch(toProxy(url), {method:'GET'});
-      if(res.ok){
-        const text = await res.text();
-        if(text && text.length>0){
-          setStatus('live','Link Live (via Proxy)');
-          onUpdate?.('live', 200);
-          return {ok:true,status:200};
-        }else{
-          setStatus('err','Tidak bisa diakses (empty)');
-          onUpdate?.('err', 'EMPTY');
-          return {ok:false,status:0};
-        }
-      }else{
+      if(!res.ok){
         setStatus('err',`Error Proxy: ${res.status}`);
         onUpdate?.('err', res.status);
         return {ok:false,status:res.status};
+      }
+      const text = await res.text();
+      const verdict = inferStatusFromText(text);
+      if(verdict.ok){
+        setStatus('live','Link Live (via Proxy)');
+        onUpdate?.('live', verdict.code || 200);
+        return {ok:true,status:200};
+      }else{
+        setStatus('err','Tidak bisa diakses');
+        onUpdate?.('err', verdict.code || 'ERR');
+        return {ok:false,status:0};
       }
     }
   }catch{
@@ -213,7 +263,7 @@ btn.addEventListener('click', async () => {
   input.value = '';
 });
 
-/* klik item untuk copy (kiri/area judul-URL) + tombol lainnya */
+/* klik item untuk copy + action buttons */
 historyList.addEventListener('click', async (e)=>{
   const li = e.target.closest('.history-item');
   if(!li) return;
@@ -223,17 +273,15 @@ historyList.addEventListener('click', async (e)=>{
 
   if(e.target.closest('.remove')){
     historyData = historyData.filter(r=>r.id!==id);
-    saveLS(); renderAll();
-    return;
+    saveLS(); renderAll(); return;
   }
   if(e.target.closest('.recheck')){
     const mode = modeDirect.checked ? 'direct' : 'proxy';
     rec.mode = mode; upsertRecord(rec);
     await checkOnce(rec.url, mode, (state, code)=> updateBadge(id, state, code));
-    ensureTitle(id);
-    return;
+    ensureTitle(id); return;
   }
-  if(e.target.closest('a')) return; // klik tombol Open -> default
+  if(e.target.closest('a')) return; // tombol Open
 
   // klik di area main => copy URL
   const main = e.target.closest('.item-main');
@@ -322,14 +370,12 @@ exportCsvBtn?.addEventListener('click', ()=>{
   a.download = `link-history-${ts}.csv`; document.body.appendChild(a); a.click(); a.remove();
 });
 
-/* ===== Auto-check hanya item merah; stop jika semua hijau; start lagi jika ada merah ===== */
+/* ===== Auto-check merah only; stop bila semua hijau; start lagi jika ada merah ===== */
 const AUTO_MS = 30000;
 let autoTimer = null;
 let autoIdx = 0;
 
-function visibleIds(){
-  return Array.from(historyList.children).map(li => li.dataset.id);
-}
+function visibleIds(){ return Array.from(historyList.children).map(li => li.dataset.id); }
 function visibleRedIds(){
   const ids = visibleIds();
   return ids.filter(id => {
@@ -337,23 +383,17 @@ function visibleRedIds(){
     return rec && rec.status === 'err';
   });
 }
-function stopAuto(){
-  if(autoTimer){ clearInterval(autoTimer); autoTimer = null; }
-}
+function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer = null; } }
 function startAuto(){
   if(autoTimer) return;
-  const reds = visibleRedIds();
-  if(!reds.length) return;
+  if(!visibleRedIds().length) return;
   autoTimer = setInterval(runAutoTick, AUTO_MS);
 }
-function reevaluateAuto(){
-  const reds = visibleRedIds();
-  if(reds.length){ startAuto(); }
-  else{ stopAuto(); }
-}
+function reevaluateAuto(){ visibleRedIds().length ? startAuto() : stopAuto(); }
+
 async function runAutoTick(){
   const reds = visibleRedIds();
-  if(!reds.length){ stopAuto(); return; } // semua hijau → berhenti
+  if(!reds.length){ stopAuto(); return; }
 
   const id = reds[autoIdx % reds.length]; autoIdx++;
   const rec = historyData.find(r=>r.id===id); if(!rec) return;
@@ -363,7 +403,7 @@ async function runAutoTick(){
   await checkOnce(rec.url, mode, (state, code)=> updateBadge(rec.id, state, code));
   ensureTitle(rec.id);
 
-  // setelah cek, evaluasi lagi (bisa jadi hijau semua)
+  // re-evaluate setelah cek
   reevaluateAuto();
 }
 
