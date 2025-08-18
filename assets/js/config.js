@@ -5,12 +5,16 @@ let currentDirHandle = null;
 
 const saveFileBtn = document.getElementById('saveFileBtn');
 const editor = document.getElementById('editor');
+
 const campaignIdInput = document.getElementById('campaignId');
 const updateCampaignIdBtn = document.getElementById('updateCampaignIdBtn');
+
 const subjectInput = document.getElementById('subject');
 const updateSubjectBtn = document.getElementById('updateSubjectBtn');
+
 const linkInput = document.getElementById('link');
 const updateLinkBtn = document.getElementById('updateLinkBtn');
+
 const campaignCountIndicator = document.getElementById('campaignCountIndicator');
 
 const folderOpenBtn = document.getElementById('folderOpenBtn');
@@ -41,7 +45,37 @@ function clearStatusIcon(id) {
   if (el) el.style.display = 'none';
 }
 
-/* ---- Helpers to control sidebar state (disabled / enabled) ---- */
+/* =========================
+   Helpers: Campaign vs Link
+   ========================= */
+function getFourDigitsFromCampaign(id) {
+  if (!id) return null;
+  const m = id.match(/_(\d{4})\s*$/);
+  return m ? m[1] : null;
+}
+function getFourDigitsFromLink(urlStr) {
+  if (!urlStr) return null;
+  let lastSeg = '';
+  try {
+    const u = new URL(urlStr);
+    const parts = u.pathname.split('/').filter(Boolean);
+    lastSeg = parts[parts.length - 1] || '';
+  } catch {
+    const parts = urlStr.split('/').filter(Boolean);
+    lastSeg = parts[parts.length - 1] || '';
+  }
+  const m = lastSeg.match(/^(\d{4})-/);
+  return m ? m[1] : null;
+}
+function validateCampaignLinkPair(campaignId, link) {
+  const cid4 = getFourDigitsFromCampaign(campaignId);
+  const link4 = getFourDigitsFromLink(link);
+  if (!campaignId || !link) return { ok: true, expected: cid4, found: link4 };
+  if (!cid4 || !link4) return { ok: false, expected: cid4 || '(4-digit)', found: link4 || '(?)' };
+  return { ok: cid4 === link4, expected: cid4, found: link4 };
+}
+
+/* ---- Sidebar state ---- */
 function markFileListNeedsReopen() {
   fileListRoot.classList.add('needs-reopen');
   fileList.innerHTML = '';
@@ -61,17 +95,16 @@ function clearFileListDisabled() {
 }
 
 /* ================================
-   KRHRED helpers (no notice modal)
+   KRHRED helpers
    ================================ */
 /**
- * Normalize ALL tokens that contain KRHRED + digits into canonical:
- *    <%[KRHRED_Unit_XX]|%>
- * IMPORTANT: Bare "KRHRED" (without digits) is NOT converted.
- * Returns: { text: string, missingDetected: boolean }
- *   - missingDetected = true if any bare "KRHRED" without digits is found.
+ * Menormalisasi semua variasi KRHRED_XX menjadi <%[KRHRED_Unit_XX]|%>
+ * dan mendeteksi KRHRED tanpa angka (invalid).
+ * Return: { text, missingDetected }
  */
 function normalizeKrhredTokens(text) {
   if (!text) return { text, missingDetected: false };
+
   const toDigits2 = (raw) => {
     if (raw == null || raw === '') return null;
     const s = String(raw);
@@ -81,6 +114,7 @@ function normalizeKrhredTokens(text) {
 
   let missingDetected = false;
 
+  // Lindungi token yang sudah valid supaya tidak disentuh
   const placeholders = [];
   text = text.replace(
     /<%\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*%>/gi,
@@ -91,6 +125,8 @@ function normalizeKrhredTokens(text) {
       return key;
     }
   );
+
+  // Variasi umum → canonical
   text = text.replace(
     /<\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*>/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
@@ -107,17 +143,51 @@ function normalizeKrhredTokens(text) {
     /(?<![<\[])\bKRHRED(?:_Unit)?(?:[_\s-]*([0-9oOlLiI]{1,2}))\b(?!\s*[%>\]])/gi,
     (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
   );
-  text = text.replace(
-    /(?<![<\[])\bKRHRED\b(?![_\s-]*[0-9oOlLiI]{1,2})(?!\s*[%>\]])/gi,
-    (m) => {
-      missingDetected = true;
-      return m;
-    }
-  );
+
+  // KRHRED tanpa angka → tandai invalid (jangan diubah)
+  if (/\bKRHRED\b(?![_\s-]*[0-9oOlLiI]{1,2})/i.test(text)) {
+    missingDetected = true;
+  }
+
+  // Kembalikan placeholder
   for (const [key, canon] of placeholders) {
     text = text.replaceAll(key, canon);
   }
+
   return { text, missingDetected };
+}
+
+/* =========================
+   CLEAR / RESET
+   ========================= */
+function clearAllUI(opts = { clearStorage: false }) {
+  xmlDoc = null;
+  fileHandle = null;
+
+  [campaignIdInput, subjectInput, linkInput].forEach(inp => {
+    inp.value = '';
+    inp.classList.remove('error');
+    inp.style.borderColor = '';
+  });
+
+  updateCampaignCountIndicator('');
+  const cc1 = document.getElementById('campaignIdCharCount');
+  if (cc1) cc1.textContent = '(0)';
+  const cc2 = document.getElementById('subjectCharCount');
+  if (cc2) cc2.textContent = '(0)';
+
+  ['campaignIdCheckmark','subjectCheckmark','linkCheckmark'].forEach(clearStatusIcon);
+  const mw = document.getElementById('mismatchWarning');
+  if (mw) mw.style.display = 'none';
+
+  editor.textContent = '';
+  saveFileBtn.style.borderColor = '';
+  saveFileBtn.style.backgroundColor = '';
+
+  // pastikan tombol subject dinonaktifkan ketika tidak ada XML
+  updateSubjectBtn.disabled = true;
+
+  if (opts.clearStorage) localStorage.removeItem('config_state');
 }
 
 /* ---- Save / Load XML ---- */
@@ -160,59 +230,58 @@ saveFileBtn.addEventListener('click', async () => {
   });
 });
 
-/* ---- Link vs CampaignID live mismatch check ---- */
-linkInput.addEventListener('input', () => {
-  saveFileBtn.style.borderColor = '';
-  saveFileBtn.style.backgroundColor = '';
-
-  const campaignId = campaignIdInput.value.trim();
-  const linkValue = linkInput.value.trim();
+/* ---- Live validation hubungan CampaignID ↔ Link ---- */
+function liveValidatePair() {
+  const cid = campaignIdInput.value.trim();
+  const lnk = linkInput.value.trim();
+  const res = validateCampaignLinkPair(cid, lnk);
   const mismatchWarning = document.getElementById('mismatchWarning');
-  const saveBtn = saveFileBtn;
 
-  let matchDigits = '';
-  let matchDigitsLength = 0;
-  const underscoreIndex = campaignId.lastIndexOf('_');
-  if (underscoreIndex !== -1) {
-    const digitsPart = campaignId.substring(underscoreIndex + 1);
-    if (digitsPart.length === 4 || digitsPart.length === 3) {
-      matchDigits = digitsPart;
-      matchDigitsLength = digitsPart.length;
-    }
+  campaignIdInput.classList.remove('error');
+  linkInput.classList.remove('error');
+  campaignIdInput.style.borderColor = '';
+  linkInput.style.borderColor = '';
+  if (mismatchWarning) mismatchWarning.style.display = 'none';
+
+  if (cid && lnk && !res.ok) {
+    if (mismatchWarning) mismatchWarning.style.display = 'inline';
+    campaignIdInput.classList.add('error');
+    linkInput.classList.add('error');
   }
-  if (!matchDigits) { matchDigits = campaignId.slice(-4); matchDigitsLength = 4; }
+}
+campaignIdInput.addEventListener('input', liveValidatePair);
+linkInput.addEventListener('input', liveValidatePair);
 
-  let mismatch = false;
-  if (campaignId && linkValue) {
-    const urlParts = linkValue.split('/');
-    const lastPart = urlParts[urlParts.length - 1] || '';
-    const regex = new RegExp('^' + matchDigits + '(-|\\.|_|$)');
-    if (!regex.test(lastPart)) mismatch = true;
-  }
+/* ---- SAFE loader (silent on empty/invalid) ---- */
+function loadXmlFromText(xmlText, { suppressAlert = false } = {}) {
+  const raw = (xmlText || '').trim();
 
-  if (mismatch) {
-    campaignIdInput.style.borderColor = 'red';
-    linkInput.style.borderColor = 'red';
-    mismatchWarning.style.display = 'inline';
-    saveBtn.disabled = true;
-  } else {
-    campaignIdInput.style.borderColor = '';
-    linkInput.style.borderColor = '';
-    mismatchWarning.style.display = 'none';
-    saveBtn.disabled = false;
-  }
-});
-
-function loadXmlFromText(xmlText) {
-  const parser = new DOMParser();
-  xmlDoc = parser.parseFromString(xmlText, "application/xml");
-  if (xmlDoc.getElementsByTagName('parsererror').length) {
-    alert('Error parsing XML');
+  if (!raw) {
     xmlDoc = null;
+    initializeFields();
+    updateEditor();
+    // subject button harus disable bila tidak ada XML
+    gateSubjectButton();
     return;
   }
+
+  const parser = new DOMParser();
+  const parsed = parser.parseFromString(raw, "application/xml");
+  const hasError = parsed.getElementsByTagName('parsererror').length > 0;
+
+  if (hasError) {
+    if (!suppressAlert) console.warn('XML parse error on load; UI cleared.');
+    xmlDoc = null;
+    initializeFields();
+    editor.textContent = '';
+    gateSubjectButton();
+    return;
+  }
+
+  xmlDoc = parsed;
   initializeFields();
   updateEditor();
+  gateSubjectButton();
 }
 
 function updateCampaignCountIndicator(campaignId) {
@@ -234,7 +303,14 @@ function updateCampaignCountIndicator(campaignId) {
 }
 
 function initializeFields() {
-  // Campaign ID
+  if (!xmlDoc) {
+    campaignIdInput.value = '';
+    subjectInput.value = '';
+    linkInput.value = '';
+    updateCampaignCountIndicator('');
+    return;
+  }
+
   let currentCampaignId = '';
   const audienceModel = xmlDoc.querySelector('AudienceModel');
   if (audienceModel) currentCampaignId = audienceModel.getAttribute('name') || '';
@@ -245,45 +321,56 @@ function initializeFields() {
   campaignIdInput.value = currentCampaignId;
   updateCampaignCountIndicator(currentCampaignId);
 
-  // Subject
   const messageContent = xmlDoc.querySelector('MessageContent');
   const subject = messageContent ? messageContent.getAttribute('subject') : '';
   subjectInput.value = subject;
 
-  // Link
   const messageBody = xmlDoc.querySelector('MessageBody');
   const link = messageBody ? messageBody.getAttribute('content') : '';
   linkInput.value = link;
 }
 
-/* Live validation campaignId (no spaces) + mismatch toggle */
+/* ---- Live campaignId input ---- */
 campaignIdInput.addEventListener('input', () => {
   updateCampaignCountIndicator(campaignIdInput.value);
-  campaignIdInput.style.borderColor = /\s/.test(campaignIdInput.value) ? 'red' : '';
-
-  const campaignId = campaignIdInput.value.trim();
-  const linkValue = linkInput.value.trim();
-  const mismatchWarning = document.getElementById('mismatchWarning');
-  const saveBtn = saveFileBtn;
-
-  const last4 = campaignId.slice(-4);
-  const last3 = campaignId.slice(-3);
-  let mismatch = false;
-  if (campaignId && linkValue) {
-    if (!(linkValue.includes(last4) || linkValue.includes(last3))) mismatch = true;
-  }
-  if (mismatch) {
-    campaignIdInput.style.borderColor = 'red';
-    linkInput.style.borderColor = 'red';
-    mismatchWarning.style.display = 'inline';
-    saveBtn.disabled = true;
+  const raw = campaignIdInput.value;
+  const hasSpace = /\s/.test(raw);
+  const isEmpty  = raw.trim() === '';
+  if (hasSpace || isEmpty) {
+    campaignIdInput.classList.add('error');
   } else {
-    mismatchWarning.style.display = 'none';
-    saveBtn.disabled = false;
-    campaignIdInput.style.borderColor = '';
-    linkInput.style.borderColor = '';
+    campaignIdInput.classList.remove('error');
   }
   clearStatusIcon('campaignIdCheckmark');
+});
+
+/* =========================
+   SUBJECT GATE (baru)
+   ========================= */
+/** Mengatur enable/disable tombol Update Subject sesuai aturan KRHRED */
+function gateSubjectButton() {
+  const raw = subjectInput.value || '';
+  const { missingDetected } = normalizeKrhredTokens(raw);
+  const noXml = !xmlDoc;
+  const empty = raw.trim() === '';
+
+  // Disable jika: tidak ada XML, atau kosong, atau ada KRHRED tanpa angka
+  updateSubjectBtn.disabled = noXml || empty || missingDetected;
+
+  // styling
+  if (missingDetected) {
+    subjectInput.classList.add('error');
+    setStatusIcon('subjectCheckmark', 'error');
+  } else {
+    subjectInput.classList.remove('error');
+    clearStatusIcon('subjectCheckmark');
+  }
+}
+
+subjectInput.addEventListener('input', () => {
+  // reset icon ketika user mengetik & evaluasi aturan
+  clearStatusIcon('subjectCheckmark');
+  gateSubjectButton();
 });
 
 /* =========================
@@ -292,85 +379,104 @@ campaignIdInput.addEventListener('input', () => {
 updateCampaignIdBtn.addEventListener('click', () => {
   if (!xmlDoc) return alert("No XML loaded.");
 
-  if (/\s/.test(campaignIdInput.value)) {
+  const val = campaignIdInput.value.trim();
+
+  if (val === '') {
+    campaignIdInput.classList.add('error');
+    clearStatusIcon('campaignIdCheckmark');
+    alert('Campaign ID cannot be empty.');
+    return;
+  }
+  if (/\s/.test(val)) {
     campaignIdInput.classList.add('error');
     alert('Campaign ID must not contain spaces.');
     clearStatusIcon('campaignIdCheckmark');
     return;
   }
 
-  saveFileBtn.disabled = false;
+  const ln = linkInput.value.trim();
+  if (ln) {
+    const res = validateCampaignLinkPair(val, ln);
+    const mw = document.getElementById('mismatchWarning');
+    if (!res.ok) {
+      if (mw) mw.style.display = 'inline';
+      campaignIdInput.classList.add('error');
+      linkInput.classList.add('error');
+    } else {
+      if (mw) mw.style.display = 'none';
+      campaignIdInput.classList.remove('error');
+      linkInput.classList.remove('error');
+    }
+  }
 
   const audienceModel = xmlDoc.querySelector('AudienceModel');
-  if (audienceModel) audienceModel.setAttribute('name', campaignIdInput.value);
+  if (audienceModel) audienceModel.setAttribute('name', val);
 
   const filterValue = xmlDoc.querySelector('AudienceModel > Filter > FilterValue');
-  if (filterValue) filterValue.setAttribute('value', campaignIdInput.value);
+  if (filterValue) filterValue.setAttribute('value', val);
 
   const campaign = xmlDoc.querySelector('Campaign');
   if (campaign) {
-    campaign.setAttribute('name', campaignIdInput.value);
-    campaign.setAttribute('audience', campaignIdInput.value);
+    campaign.setAttribute('name', val);
+    campaign.setAttribute('audience', val);
   }
 
   const interaction = xmlDoc.querySelector('Interaction');
   if (interaction) {
-    interaction.setAttribute('name', campaignIdInput.value);
-    interaction.setAttribute('message', campaignIdInput.value);
+    interaction.setAttribute('name', val);
+    interaction.setAttribute('message', val);
   }
 
   const messageContent = xmlDoc.querySelector('MessageContent');
-  if (messageContent) messageContent.setAttribute('name', campaignIdInput.value);
+  if (messageContent) messageContent.setAttribute('name', val);
 
   updateEditor();
 
-  // Char count & status icon
   const campaignIdCharCountSpan = document.getElementById('campaignIdCharCount');
-  if (campaignIdCharCountSpan) campaignIdCharCountSpan.textContent = `(${campaignIdInput.value.length})`;
+  if (campaignIdCharCountSpan) campaignIdCharCountSpan.textContent = `(${val.length})`;
 
-  campaignIdInput.classList.remove('error');
+  updateCampaignCountIndicator(val);
   setStatusIcon('campaignIdCheckmark', 'ok');
-
-  // Clear mismatch styles
-  document.getElementById('mismatchWarning').style.display = 'none';
-  campaignIdInput.style.borderColor = '';
-  linkInput.style.borderColor = '';
 });
 
 /* ---- Clear icons saat mengetik ---- */
 campaignIdInput.addEventListener('input', () => clearStatusIcon('campaignIdCheckmark'));
-subjectInput.addEventListener('input',   () => clearStatusIcon('subjectCheckmark'));
-linkInput.addEventListener('input',      () => clearStatusIcon('linkCheckmark'));
+linkInput.addEventListener('input', () => clearStatusIcon('linkCheckmark'));
 
 /* =========================
-   UPDATE SUBJECT (KRHRED)
+   UPDATE SUBJECT (KRHRED rules)
    ========================= */
 updateSubjectBtn.addEventListener('click', () => {
-  if (!xmlDoc) return alert("No XML loaded.");
+  if (!xmlDoc) { alert("No XML loaded."); return; }
 
   const messageContent = xmlDoc.querySelector('MessageContent');
-  if (!messageContent) return;
+  if (!messageContent) { alert("MessageContent not found in XML."); return; }
 
+  // 1) Normalisasi semua KRHRED_XX → <%[KRHRED_Unit_XX]|%>
+  // 2) Jika ada KRHRED tanpa angka → TOLAK (tidak tulis ke XML)
   let s = subjectInput.value.replace(/\s{2,}/g, ' ').trim();
   const { text: normalized, missingDetected } = normalizeKrhredTokens(s);
+
+  // gate: jika ada KRHRED tanpa angka, tombol seharusnya sudah disabled
+  if (missingDetected || normalized.trim() === '') {
+    subjectInput.classList.add('error');
+    setStatusIcon('subjectCheckmark', 'error');
+    // Jangan tulis ke XML
+    gateSubjectButton(); // pastikan state tombol konsisten
+    return;
+  }
+
+  // tulis ke input + XML
   s = normalized;
   subjectInput.value = s;
 
   const charCountSpan = document.getElementById('subjectCharCount');
   if (charCountSpan) charCountSpan.textContent = `(${s.length})`;
 
-  if (missingDetected) {
-    subjectInput.classList.add('error');
-    setStatusIcon('subjectCheckmark', 'error'); // X merah saat invalid
-    saveFileBtn.disabled = true;
-    return;
-  }
-
   messageContent.setAttribute('subject', s);
-  subjectInput.classList.remove('error');
-  saveFileBtn.disabled = false;
+  setStatusIcon('subjectCheckmark', 'ok');
   updateEditor();
-  setStatusIcon('subjectCheckmark', 'ok');      // ceklis saat valid
+  gateSubjectButton();
 });
 
 /* =========================
@@ -380,35 +486,48 @@ updateLinkBtn.addEventListener('click', () => {
   if (!xmlDoc) return alert("No XML loaded.");
 
   const messageBody = xmlDoc.querySelector('MessageBody');
-  if (messageBody) {
-    let linkValue = linkInput.value.trim();
-    const urlPattern = /^(http:\/\/|https:\/\/).+/i;
+  if (!messageBody) return;
 
-    if (!urlPattern.test(linkValue)) {
-      alert('Please enter a valid link starting with http:// or https://');
-      linkInput.classList.add('error');
-      clearStatusIcon('linkCheckmark');
-      saveFileBtn.disabled = true;
-      return;
-    }
+  let linkValue = linkInput.value.trim();
+  const urlPattern = /^(http:\/\/|https:\/\/).+/i;
 
-    if (linkValue.startsWith('https://')) {
-      linkValue = 'http://' + linkValue.substring(8);
-    }
-
-    messageBody.setAttribute('content', linkValue);
-    linkInput.classList.remove('error');
+  if (!urlPattern.test(linkValue)) {
+    alert('Please enter a valid link starting with http:// or https://');
+    linkInput.classList.add('error');
+    clearStatusIcon('linkCheckmark');
+    return;
   }
 
-  updateEditor();
-  saveFileBtn.disabled = false;
+  if (linkValue.startsWith('https://')) {
+    linkValue = 'http://' + linkValue.substring(8);
+  }
 
+  const cid = campaignIdInput.value.trim();
+  if (cid) {
+    const res = validateCampaignLinkPair(cid, linkValue);
+    const mw = document.getElementById('mismatchWarning');
+    if (!res.ok) {
+      if (mw) mw.style.display = 'inline';
+      campaignIdInput.classList.add('error');
+      linkInput.classList.add('error');
+    } else {
+      if (mw) mw.style.display = 'none';
+      campaignIdInput.classList.remove('error');
+      linkInput.classList.remove('error');
+    }
+  }
+
+  messageBody.setAttribute('content', linkValue);
   setStatusIcon('linkCheckmark', 'ok');
+  updateEditor();
 });
 
 /* ---- Editor helper ---- */
 function updateEditor() {
-  if (!xmlDoc) return;
+  if (!xmlDoc) {
+    editor.textContent = '';
+    return;
+  }
   const serializer = new XMLSerializer();
   let updatedXmlStr = serializer.serializeToString(xmlDoc);
   updatedXmlStr = formatXml(updatedXmlStr);
@@ -418,6 +537,8 @@ function updateEditor() {
 /* ---- Open / Reopen Folder ---- */
 folderOpenBtn.addEventListener('click', async () => {
   try {
+    clearAllUI({ clearStorage: true });
+
     const dirHandle = await window.showDirectoryPicker();
     currentDirHandle = dirHandle;
     fileList.innerHTML = '';
@@ -461,21 +582,28 @@ folderOpenBtn.addEventListener('click', async () => {
           fileHandle = entry;
           const file = await entry.getFile();
           const text = await file.text();
-          editor.textContent = text;
-          loadXmlFromText(text);
 
-          // Reset icons + warning
+          loadXmlFromText(text, { suppressAlert: true });
+
           ['campaignIdCheckmark','subjectCheckmark','linkCheckmark'].forEach(id => clearStatusIcon(id));
           const mismatchWarning = document.getElementById('mismatchWarning');
           if (mismatchWarning) mismatchWarning.style.display = 'none';
           campaignIdInput.style.borderColor = '';
           linkInput.style.borderColor = '';
+          campaignIdInput.classList.remove('error');
+          linkInput.classList.remove('error');
+          subjectInput.classList.remove('error');
 
           saveFileBtn.style.borderColor = '';
           saveFileBtn.style.backgroundColor = '';
 
           fileList.querySelectorAll('li').forEach(sib => sib.classList.remove('selected'));
           li.classList.add('selected');
+
+          // evaluasi lagi tombol subject setelah file dibuka
+          gateSubjectButton();
+
+          saveState();
         });
 
         parentUl.appendChild(li);
@@ -525,19 +653,29 @@ function saveState() {
 }
 function loadState() {
   const saved = localStorage.getItem('config_state');
-  if (!saved) return;
+  if (!saved) { gateSubjectButton(); return; }
   try {
     const state = JSON.parse(saved);
-    campaignIdInput.value = state.campaignId || '';
-    subjectInput.value = state.subject || '';
-    linkInput.value = state.link || '';
+
+    clearAllUI();
 
     if (state.xmlContent) {
-      editor.textContent = state.xmlContent;
-      loadXmlFromText(state.xmlContent);
+      loadXmlFromText(state.xmlContent, { suppressAlert: true });
     }
+
+    if (xmlDoc) {
+      campaignIdInput.value = state.campaignId || '';
+      subjectInput.value = state.subject || '';
+      linkInput.value = state.link || '';
+      updateCampaignCountIndicator(campaignIdInput.value);
+    }
+
     if (state.folderOpened) { markFileListNeedsReopen(); }
-  } catch (e) { console.error('Error loading state:', e); }
+  } catch (e) {
+    console.error('Error loading state:', e);
+  } finally {
+    gateSubjectButton();
+  }
 }
 [campaignIdInput, subjectInput, linkInput].forEach(inp => inp.addEventListener('input', saveState));
 window.addEventListener('load', loadState);
