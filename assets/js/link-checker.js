@@ -35,26 +35,33 @@ function toProxy(u){ return 'https://r.jina.ai/' + u; }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function decodeEntities(s){ const t=document.createElement('textarea'); t.innerHTML=s; return t.value; }
 
+/* ===== title sanitize: hapus prefix "Title:" dkk ===== */
+function cleanTitle(s){
+  if(!s) return s;
+  let t = s.trim();
+  t = t.replace(/^\s*title\s*[:\-–]\s*/i, ''); // remove leading "Title: "
+  return t.trim();
+}
+
 /* ===== content parsers ===== */
 function parseTitleFromText(text){
   // <title>
   const mTitle = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  if (mTitle && mTitle[1]) return decodeEntities(mTitle[1]).replace(/\s+/g,' ').trim();
+  if (mTitle && mTitle[1]) return cleanTitle(decodeEntities(mTitle[1]).replace(/\s+/g,' ').trim());
   // og:title
   const mOg = text.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["'][^>]*>/i);
-  if (mOg && mOg[1]) return decodeEntities(mOg[1]).replace(/\s+/g,' ').trim();
-  // Markdown H1 (r.jina.ai kadang merender HTML -> MD)
+  if (mOg && mOg[1]) return cleanTitle(decodeEntities(mOg[1]).replace(/\s+/g,' ').trim());
+  // Markdown H1
   const mdH1 = text.match(/^\s*#\s+(.+)\s*$/m);
-  if (mdH1 && mdH1[1]) return mdH1[1].replace(/\s+/g,' ').trim();
+  if (mdH1 && mdH1[1]) return cleanTitle(mdH1[1].replace(/\s+/g,' ').trim());
   // first meaningful short line
   const firstLine = (text.split(/\r?\n/).map(s=>s.trim()).find(s => s && s.length<=120)) || '';
-  if (firstLine) return firstLine;
+  if (firstLine) return cleanTitle(firstLine);
   return '';
 }
 
 /* Heuristik deteksi error dari isi halaman (Proxy mode) */
 function inferStatusFromText(text){
-  // Kalau sangat pendek dan tidak ada <html>, kemungkinan error
   const looksHtml = /<!doctype html|<html[\s>]/i.test(text);
   const title = parseTitleFromText(text) || '';
   const hay = `${title}\n${text}`.toLowerCase();
@@ -66,7 +73,6 @@ function inferStatusFromText(text){
     /cannot\s+(be\s+)?found/gi,
     /forbidden/gi,
     /access\s+denied/gi,
-    /access\s+is\s+denied/gi,
     /unauthorized/gi,
     /doesn[’']?t\s+exist/gi,
     /bad\s+request/gi,
@@ -74,7 +80,6 @@ function inferStatusFromText(text){
     /maintenance/gi
   ];
 
-  // jika title mengandung 404/403/… atau frasa error, anggap error
   const titleErr = /\b(404|403|401|500|502|503|504)\b/.test(title.toLowerCase()) ||
                    /(not\s+found|forbidden|access\s+denied)/i.test(title);
 
@@ -87,11 +92,8 @@ function inferStatusFromText(text){
   }
 
   if (matched) return { ok:false, code:'PROXY_ERR', reason:matched, title };
-  // kalau tidak ada indikasi error & ada "html/body", anggap OK
   if (looksHtml || title) return { ok:true, code:200, reason:'HTML_OK', title };
-  // fallback konten raw tapi non-kosong -> OK tipis
   if (text && text.length > 200) return { ok:true, code:200, reason:'TEXT_OK', title };
-
   return { ok:false, code:'PROXY_EMPTY', reason:'empty', title };
 }
 
@@ -163,7 +165,7 @@ function renderAll(){
     visible++;
   }
   if (countIndicator) countIndicator.textContent = `${visible} / ${historyData.length} items`;
-  reevaluateAuto(); // sync auto-check setelah render
+  reevaluateAuto();
 }
 
 function upsertRecord(rec){
@@ -178,6 +180,19 @@ function updateBadge(id, state, code){
   rec.status = state;
   rec.code = code || rec.code;
   rec.ts = Date.now();
+
+  // kalau ERR dan title tidak bermakna → set pesan default
+  if(state === 'err'){
+    const t = (rec.title || '').trim();
+    let needs = !t || /loading title/i.test(t);
+    if(!needs){
+      try{ needs = (t === new URL(rec.url).hostname); }catch{}
+    }
+    if(needs){
+      rec.title = 'Link salah atau offline, cek link!';
+    }
+  }
+
   upsertRecord(rec);
 }
 
@@ -196,7 +211,7 @@ async function ensureTitle(id){
   if(!need) return;
 
   const ttl = await fetchTitle(rec.url);
-  rec.title = ttl || rec.title || rec.url;
+  rec.title = cleanTitle(ttl || rec.title || rec.url);
   upsertRecord(rec);
 }
 
@@ -220,7 +235,6 @@ async function checkOnce(url, mode, onUpdate){
         return {ok:false,status:res.status};
       }
     } else {
-      // Proxy: nilai dari isi halaman (heuristik)
       const res = await fetch(toProxy(url), {method:'GET'});
       if(!res.ok){
         setStatus('err',`Error Proxy: ${res.status}`);
@@ -281,7 +295,7 @@ historyList.addEventListener('click', async (e)=>{
     await checkOnce(rec.url, mode, (state, code)=> updateBadge(id, state, code));
     ensureTitle(id); return;
   }
-  if(e.target.closest('a')) return; // tombol Open
+  if(e.target.closest('a')) return;
 
   // klik di area main => copy URL
   const main = e.target.closest('.item-main');
@@ -302,7 +316,7 @@ clearListBtn.addEventListener('click', ()=>{
 });
 recheckAllBtn.addEventListener('click', async ()=>{
   const mode = modeDirect.checked ? 'direct' : 'proxy';
-  const ids = Array.from(historyList.children).map(li => li.dataset.id); // hanya yang tampil
+  const ids = Array.from(historyList.children).map(li => li.dataset.id);
   for(const id of ids){
     const rec = historyData.find(r=>r.id===id); if(!rec) continue;
     rec.mode = mode; upsertRecord(rec);
@@ -370,7 +384,7 @@ exportCsvBtn?.addEventListener('click', ()=>{
   a.download = `link-history-${ts}.csv`; document.body.appendChild(a); a.click(); a.remove();
 });
 
-/* ===== Auto-check merah only; stop bila semua hijau; start lagi jika ada merah ===== */
+/* ===== Auto-check: hanya item MERAH; stop bila semua hijau; start lagi jika ada merah ===== */
 const AUTO_MS = 30000;
 let autoTimer = null;
 let autoIdx = 0;
@@ -384,17 +398,12 @@ function visibleRedIds(){
   });
 }
 function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer = null; } }
-function startAuto(){
-  if(autoTimer) return;
-  if(!visibleRedIds().length) return;
-  autoTimer = setInterval(runAutoTick, AUTO_MS);
-}
+function startAuto(){ if(!autoTimer && visibleRedIds().length){ autoTimer = setInterval(runAutoTick, AUTO_MS); } }
 function reevaluateAuto(){ visibleRedIds().length ? startAuto() : stopAuto(); }
 
 async function runAutoTick(){
   const reds = visibleRedIds();
   if(!reds.length){ stopAuto(); return; }
-
   const id = reds[autoIdx % reds.length]; autoIdx++;
   const rec = historyData.find(r=>r.id===id); if(!rec) return;
 
@@ -402,8 +411,6 @@ async function runAutoTick(){
   rec.mode = mode; upsertRecord(rec);
   await checkOnce(rec.url, mode, (state, code)=> updateBadge(rec.id, state, code));
   ensureTitle(rec.id);
-
-  // re-evaluate setelah cek
   reevaluateAuto();
 }
 
@@ -411,6 +418,5 @@ async function runAutoTick(){
 (function init(){
   loadLS();
   renderAll();
-  // lengkapi title untuk item lama
   for (const rec of historyData) ensureTitle(rec.id);
 })();
