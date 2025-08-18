@@ -224,3 +224,36 @@ tbody td:last-child { border-top-right-radius:10px; border-bottom-right-radius:1
   .filter{ width: 100%; }
   .filter input{ width: 100%; }
 }
+
+/* Back to Index button — disamakan dengan config */
+.back-btn{
+  position: fixed;
+  top: auto;
+  right: auto;
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  transition: background .2s ease, transform .2s ease;
+  z-index: 1000;
+  bottom: 16px;
+  left: 16px;
+}
+.back-btn:hover{ background:#444; transform: scale(1.08); }
+
+
+@supports (bottom: env(safe-area-inset-bottom)){
+  .back-btn{
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+    left: max(16px, calc(env(safe-area-inset-left) + 8px));
+  }
+}

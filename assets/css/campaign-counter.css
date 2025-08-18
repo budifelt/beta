@@ -151,8 +151,8 @@ body{
 /* Back to index button */
 .back-btn{
   position: fixed;
-  top: max(12px, calc(env(safe-area-inset-top) + 8px));
-  right: max(12px, calc(env(safe-area-inset-right) + 8px));
+  top: auto;
+  right: auto;
   background: rgba(0,0,0,.65);
   color: #fff;
   border: none;
@@ -168,6 +168,8 @@ body{
   transition: background .2s ease, transform .12s ease;
   z-index: 1000;
   -webkit-tap-highlight-color: transparent;
+  bottom: 16px;
+  left: 16px;
 }
 .back-btn:hover{ background: rgba(0,0,0,.8); transform: scale(1.04); }
 .back-btn:active{ transform: scale(.98); }
