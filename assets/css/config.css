@@ -1,14 +1,13 @@
-
-/* ---- Extracted styles from inline <style> blocks ---- */
+/* ---- existing styles (dari file kamu) ---- */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    overflow: hidden;
-    background-color: #fce8e6;
-    color: #222222;
-  }
+  font-family: Arial, sans-serif;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background-color: #fce8e6;
+  color: #222222;
+}
 #sidebar {
   width: 250px;
   min-width: 250px;
@@ -22,161 +21,57 @@ body {
   overflow: hidden;
   box-shadow: 2px 0 5px rgba(0,0,0,0.05);
 }
-  #sidebar h2 {
-    color: #222222;
-    font-size: 1.2em;
-    margin: 0 0 10px 0;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e6b8b5;
-  }
-  #folderOpenBtn {
-    background-color: #222222;
-    border: none;
-    color: white;
-    padding: 8px 12px;
-    font-size: 1em;
-    cursor: pointer;
-    margin-bottom: 10px;
-    border-radius: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    transition: background-color 0.3s ease;
-  }
-  #folderOpenBtn:hover {
-    background-color: #444444;
-  }
-  #fileList {
-    flex-grow: 1;
-    overflow-y: auto;
-    border-top: 1px solid #e6b8b5;
-    padding-top: 10px;
-  }
-  #fileList ul {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-  }
-  #fileList li {
-    padding: 5px 8px 5px 28px;
-    cursor: pointer;
-    border-radius: 10px;
-    position: relative;
-    user-select: none;
-    transition: background-color 0.3s ease;
-  }
-  #fileList li:hover, #fileList li:focus {
-    outline: none;
-    background-color: #e6b8b5;
-  }
-  #fileList li.selected {
-    background-color: #d9a8a5;
-  }
-  #fileList li.folder {
-    padding-left: 20px;
-    position: relative;
-    display: block;
-  }
-  #fileList li.folder .arrow {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    margin-right: 4px;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.2s ease;
-    vertical-align: middle;
-  }
-  #fileList li.folder .arrow::before {
-    content: "▶";
-    display: inline-block;
-    font-size: 12px;
-    line-height: 12px;
-    transform-origin: center;
-  }
-  #fileList li.folder.open > .arrow::before {
-    transform: rotate(90deg);
-  }
-  #fileList li.folder .folder-icon {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 6px;
-    user-select: none;
-    vertical-align: middle;
-  }
-  #fileList li.folder .folder-icon::before {
-    content: "📁";
-    font-size: 16px;
-    line-height: 16px;
-  }
-  #fileList li.folder .folder-name {
-    display: inline-block;
-    user-select: none;
-    vertical-align: middle;
-    white-space: nowrap;
-  }
-  #fileList li.file {
-    padding-left: 8px;
-    position: relative;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-  }
-  #fileList li.file::before {
-    content: none;
-  }
-  #fileList li.file .file-icon {
-    margin-right: 6px;
-    font-size: 16px;
-    line-height: 16px;
-    user-select: none;
-  }
-  #fileList li.file .file-name {
-    white-space: nowrap;
-  }
-  #fileList ul {
-    list-style: none;
-    padding-left: 20px;
-    margin: 0;
-    position: relative;
-  }
-  #fileList ul::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 10px;
-    width: 1px;
-    height: 100%;
-    background: #e6b8b5;
-  }
-  #fileList li {
-    position: relative;
-    padding-left: 20px;
-  }
-  #fileList li::before {
-    content: "";
-    position: absolute;
-    top: 12px;
-    left: 0;
-    width: 10px;
-    height: 1px;
-    background: #e6b8b5;
-  }
-  #fileList li:last-child::before {
-    background: transparent;
-  }
-  #fileList li.folder > ul {
-    margin-left: 0;
-  }
-  #fileList li:hover, #fileList li:focus {
-    box-shadow: none;
-  }
-  #mainContent {
-    flex-grow: 1;
-    padding: 20px;
-    overflow-y: auto;
-    background-color: #fff0f0;
-    color: #222222;
-  }
+#sidebar h2 {
+  color: #222222;
+  font-size: 1.2em;
+  margin: 0 0 10px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e6b8b5;
+}
+#folderOpenBtn {
+  background-color: #222222;
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  font-size: 1em;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  transition: background-color 0.3s ease;
+}
+#folderOpenBtn:hover { background-color: #444444; }
+#fileList { flex-grow: 1; overflow-y: auto; border-top: 1px solid #e6b8b5; padding-top: 10px; }
+#fileList ul { list-style: none; padding-left: 0; margin: 0; }
+#fileList li {
+  padding: 5px 8px 5px 28px;
+  cursor: pointer;
+  border-radius: 10px;
+  position: relative;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+#fileList li:hover, #fileList li:focus { outline: none; background-color: #e6b8b5; }
+#fileList li.selected { background-color: #d9a8a5; }
+#fileList li.folder { padding-left: 20px; position: relative; display: block; }
+#fileList li.folder .arrow { display: inline-block; width: 12px; height: 12px; margin-right: 4px; cursor: pointer; user-select: none; transition: transform 0.2s ease; vertical-align: middle; }
+#fileList li.folder .arrow::before { content: "▶"; display: inline-block; font-size: 12px; line-height: 12px; transform-origin: center; }
+#fileList li.folder.open > .arrow::before { transform: rotate(90deg); }
+#fileList li.folder .folder-icon { display: inline-block; width: 16px; height: 16px; margin-right: 6px; user-select: none; vertical-align: middle; }
+#fileList li.folder .folder-icon::before { content: "📁"; font-size: 16px; line-height: 16px; }
+#fileList li.folder .folder-name { display: inline-block; user-select: none; vertical-align: middle; white-space: nowrap; }
+#fileList li.file { padding-left: 8px; position: relative; white-space: nowrap; display: flex; align-items: center; }
+#fileList li.file::before { content: none; }
+#fileList li.file .file-icon { margin-right: 6px; font-size: 16px; line-height: 16px; user-select: none; }
+#fileList li.file .file-name { white-space: nowrap; }
+#fileList ul { list-style: none; padding-left: 20px; margin: 0; position: relative; }
+#fileList ul::before { content: ""; position: absolute; top: 0; left: 10px; width: 1px; height: 100%; background: #e6b8b5; }
+#fileList li { position: relative; padding-left: 20px; }
+#fileList li::before { content: ""; position: absolute; top: 12px; left: 0; width: 10px; height: 1px; background: #e6b8b5; }
+#fileList li:last-child::before { background: transparent; }
+#fileList li.folder > ul { margin-left: 0; }
+#fileList li:hover, #fileList li:focus { box-shadow: none; }
+#mainContent { flex-grow: 1; padding: 20px; overflow-y: auto; background-color: #fff0f0; color: #222222; }
 
 #mainContent {
   background: #0b1220 !important;
@@ -186,264 +81,128 @@ body {
   margin: 20px !important;
 }
 
-  label {
-    display: block;
-    margin-top: 15px;
-    font-weight: 600;
-    color: #222222;
-  }
-  input[type="text"], select {
-    width: 550px;
-    padding: 8px 12px;
-    font-size: 1em;
-    border: 1px solid #e6b8b5;
-    border-radius: 20px;
-    background-color: #fff;
-    color: #222222;
-    transition: border-color 0.3s ease;
-  }
-  input[type="text"]:focus, select:focus {
-    border-color: #d9a8a5;
-    outline: none;
-  }
-  textarea {
-    width: 100%;
-    height: 350px;
-    margin-top: 20px;
-    font-family: monospace;
-    font-size: 0.9em;
-    border: 1px solid #e6b8b5;
-    border-radius: 20px;
-    background-color: #fff;
-    color: #222222;
-    padding: 10px;
-    resize: vertical;
-  }
-  button {
-    margin-top: 15px;
-    padding: 10px 20px;
-    font-size: 1em;
-    background-color: #222222;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #444444;
-  }
-  #campaignCountIndicator {
-    font-weight: 600;
-    margin-left: 10px;
-    color: #222222;
-  }
+label { display: block; margin-top: 15px; font-weight: 600; color: #222222; }
+input[type="text"], select {
+  width: 550px;
+  padding: 8px 12px;
+  font-size: 1em;
+  border: 1px solid #e6b8b5;
+  border-radius: 20px;
+  background-color: #fff;
+  color: #222222;
+  transition: border-color 0.3s ease;
+}
+input[type="text"]:focus, select:focus { border-color: #d9a8a5; outline: none; }
+textarea {
+  width: 100%;
+  height: 350px;
+  margin-top: 20px;
+  font-family: monospace;
+  font-size: 0.9em;
+  border: 1px solid #e6b8b5;
+  border-radius: 20px;
+  background-color: #fff;
+  color: #222222;
+  padding: 10px;
+  resize: vertical;
+}
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  font-size: 1em;
+  background-color: #222222;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  transition: background-color 0.3s ease;
+}
+button:hover { background-color: #444444; }
+#campaignCountIndicator { font-weight: 600; margin-left: 10px; color: #222222; }
 
-  #campaignIdValidation {
-    margin-top: 4px;
-    font-size: 14px;
-    color: #666666;
-    display: flex;
-    justify-content: flex-start;
-    gap: 8px;
-  }
-  #campaignIdValidation label {
-    font-weight: normal;
-  }
+#campaignIdValidation { margin-top: 4px; font-size: 14px; color: #666666; display: flex; justify-content: flex-start; gap: 8px; }
+#campaignIdValidation label { font-weight: normal; }
 
-
-  /* Tooltip container */
-  .tooltip {
-    position: relative;
-    display: inline-block;
-  }
-
-  /* Tooltip text */
-  .tooltip .tooltiptext {
-    visibility: hidden;
-    width: max-content;
-    max-width: 200px;
-    background-color: #222222;
-    color: #fff;
-    text-align: center;
-    border-radius: 10px;
-    padding: 10px 14px;
-    position: absolute;
-    z-index: 10;
-    bottom: 125%; /* Position above the button */
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: 0;
-    transition: opacity 0.3s;
-    font-size: 15px;
-    font-weight: normal;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  }
-
-  /* Tooltip arrow */
-  .tooltip .tooltiptext::after {
-    content: "";
-    position: absolute;
-    top: 100%; /* At the bottom of the tooltip */
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: #222222 transparent transparent transparent;
-  }
-
-  /* Show the tooltip text when hovering */
-  .tooltip:hover .tooltiptext {
-    visibility: visible;
-    opacity: 1;
-  }
+/* Tooltip */
+.tooltip { position: relative; display: inline-block; }
+.tooltip .tooltiptext {
+  visibility: hidden; width: max-content; max-width: 200px; background-color: #222222; color: #fff;
+  text-align: center; border-radius: 10px; padding: 10px 14px; position: absolute; z-index: 10; bottom: 125%;
+  left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 15px; font-weight: normal;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.tooltip .tooltiptext::after {
+  content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border-width: 6px; border-style: solid; border-color: #222222 transparent transparent transparent;
+}
+.tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
 
 .back-btn {
-  position: fixed;
-  top: 1px;
-  right: 16px;
-  background: #222;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 42px;
-  height: 42px;
-  font-size: 20px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  transition: background 0.2s ease, transform 0.2s ease;
-  z-index: 1000;
+  position: fixed; top: 1px; right: 16px; background: #222; color: #fff;
+  border: none; border-radius: 50%; width: 42px; height: 42px; font-size: 20px; font-weight: bold;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: background 0.2s ease, transform 0.2s ease; z-index: 1000;
 }
-.back-btn:hover {
-  background: #444;
-  transform: scale(1.08);
-}
+.back-btn:hover { background: #444; transform: scale(1.08); }
 
 /* Sidebar state saat butuh Reopen */
-#fileList.needs-reopen {
-  position: relative;
-  pointer-events: none;   /* blokir klik agar tidak bingung */
-  opacity: 0.6;
-}
+#fileList.needs-reopen { position: relative; pointer-events: none; opacity: 0.6; }
 #fileList .filelist-placeholder {
-  font-size: 14px;
-  color: #222222;
-  background: #fff7f7;
-  border: 1px dashed #e6b8b5;
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin-top: 8px;
+  font-size: 14px; color: #222222; background: #fff7f7; border: 1px dashed #e6b8b5;
+  border-radius: 12px; padding: 10px 12px; margin-top: 8px;
 }
 
 /* ========= Sidebar / File Tree — Dark-friendly colors ========= */
 :root {
-  /* Palet dasar sidebar */
-  --side-bg:        #0b1220;     /* gelap */
-  --side-text:      #e5e7eb;     /* slate-200 */
-  --side-muted:     #94a3b8;     /* slate-400 */
-  --side-border:    #1f2937;     /* slate-800 */
-  /* Aksen biru/indigo */
-  --accent:         #6366f1;     /* indigo-500 */
-  --accent-weak:    rgba(99,102,241,.12);
-  --accent-weak-2:  rgba(59,130,246,.10);
+  --side-bg: #0b1220; --side-text: #e5e7eb; --side-muted: #94a3b8; --side-border: #1f2937;
+  --accent: #6366f1; --accent-weak: rgba(99,102,241,.12); --accent-weak-2: rgba(59,130,246,.10);
 }
-
-/* Jika ada halaman bertema terang */
 html[data-theme="light"] {
-  --side-bg:       #f8fafc;
-  --side-text:     #0f172a;
-  --side-muted:    #475569;
-  --side-border:   #e2e8f0;
-  --accent:        #4f46e5;
-  --accent-weak:   rgba(79,70,229,.10);
-  --accent-weak-2: rgba(59,130,246,.08);
+  --side-bg: #f8fafc; --side-text: #0f172a; --side-muted: #475569; --side-border: #e2e8f0;
+  --accent: #4f46e5; --accent-weak: rgba(79,70,229,.10); --accent-weak-2: rgba(59,130,246,.08);
 }
-
-/* Warna teks/icon default di tree */
-#fileList ul li,
-#fileList .folder-name,
-#fileList .file-name {
-  color: var(--side-text);
-}
-#fileList .arrow,
-#fileList .folder-icon,
-#fileList .file-icon {
-  color: var(--side-muted);
-}
-
-/* Hover & selected: subtle dan sesuai tema */
-#fileList li.file:hover,
-#fileList li.folder:hover {
-  background: rgba(148,163,184,.08);         /* slate-400/opacity */
-}
+#fileList ul li, #fileList .folder-name, #fileList .file-name { color: var(--side-text); }
+#fileList .arrow, #fileList .folder-icon, #fileList .file-icon { color: var(--side-muted); }
+#fileList li.file:hover, #fileList li.folder:hover { background: rgba(148,163,184,.08); }
 #fileList li.file.selected {
-  background: var(--accent-weak);
-  outline: 1px solid rgba(99,102,241,.35);
-  border-left: 2px solid var(--accent);
+  background: var(--accent-weak); outline: 1px solid rgba(99,102,241,.35); border-left: 2px solid var(--accent);
 }
-
-/* ======= State "Needs Reopen" (placeholder) ======= */
-#fileList.needs-reopen {
-  position: relative;
-  pointer-events: none;   /* tetap nonaktif */
-  opacity: 1;             /* jangan pudar total biar teks terbaca */
-  background: transparent;
-}
-
-/* Ganti kartu placeholder merah → aksen indigo tematik */
+#fileList.needs-reopen { position: relative; pointer-events: none; opacity: 1; background: transparent; }
 #fileList .filelist-placeholder {
-  display: block;
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: var(--side-text);
-  background:
-    linear-gradient(135deg, var(--accent-weak), rgba(99,102,241,.06));
-  border: 1px dashed rgba(99,102,241,.35);
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin: 8px 6px 4px 6px;
+  display: block; font-size: 13.5px; line-height: 1.45; color: var(--side-text);
+  background: linear-gradient(135deg, var(--accent-weak), rgba(99,102,241,.06));
+  border: 1px dashed rgba(99,102,241,.35); border-radius: 12px; padding: 12px 14px; margin: 8px 6px 4px 6px;
   box-shadow: 0 6px 18px rgba(0,0,0,.22);
 }
 
-/* Scrollbar (opsional) biar nyambung tema */
-#fileList ::-webkit-scrollbar { width: 10px; }
-#fileList ::-webkit-scrollbar-track { background: transparent; }
-#fileList ::-webkit-scrollbar-thumb {
-  background: rgba(148,163,184,.25);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-#fileList ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148,163,184,.4);
-}
+/* Sidebar lebih lebar */
+#sidebar { width: 350px !important; min-width: 350px !important; max-width: 350px !important; }
 
-/* === Sidebar lebih lebar === */
-#sidebar{
-  width: 350px !important;
-  min-width: 350px !important;
-  max-width: 350px !important;
+/* Nama file/folder jangan ditekuk */
+#fileList .folder-name, #fileList .file-name{
+  display: inline-block; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
 }
+#fileList li.file .file-name{ flex: 1 1 auto; min-width: 0; }
 
-/* === Nama file/folder jangan ditekuk === */
-#fileList .folder-name,
-#fileList .file-name{
-  display: inline-block;
-  white-space: nowrap !important;   /* satu baris */
-  overflow: hidden;                  /* cegah tumpah */
-  text-overflow: ellipsis;           /* tampilkan … kalau kepanjangan */
+/* === Tambahan untuk ikon status FA === */
+.field.has-icon { position: relative; display: inline-block; }
+.field.has-icon input[type="text"] { padding-right: 32px; }
+.status-icon {
+  display: none;
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 1;
+  pointer-events: none;
+  font-size: 18px;
 }
+.status-icon i.fa-circle-check { color: #22c55e; } /* hijau */
+.status-icon i.fa-circle-xmark { color: #ef4444; } /* merah */
 
-/* Khusus item file (flex container) perlu min-width:0 agar ellipsis bekerja */
-#fileList li.file .file-name{
-  flex: 1 1 auto;
-  min-width: 0;                      /* penting untuk text-overflow di flex */
+/* state error pada input */
+input.error, textarea.error {
+  border-color: #ef4444 !important;
+  outline-color: #ef4444 !important;
 }
-
-/* (Opsional) jika mau bisa geser horizontal daripada ellipsis, aktifkan: */
-/* #fileList{ overflow-x: auto; } */
