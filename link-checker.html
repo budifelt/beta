@@ -21,10 +21,26 @@
       <h1 class="title"><i class="fa-solid fa-link"></i> Link Live Checker</h1>
       <p class="subtitle">Masukkan link untuk mengecek apakah sudah live. Frontend only (tanpa backend).</p>
 
+      <!-- Input URL + tombol -->
       <div class="row top-input">
         <input class="grow" type="url" id="urlInput" placeholder="https://contoh.com/path" />
         <button id="checkBtn" class="btn"><i class="fa-solid fa-magnifying-glass"></i> Check</button>
       </div>
+
+      <!-- ⇩⇩ BULK DIPINDAH KE SINI (tepat di bawah kolom URL) ⇩⇩ -->
+      <details class="bulk-wrap">
+        <summary>Bulk check — paste banyak URL</summary>
+        <textarea id="bulk" rows="6" placeholder="Satu URL per baris..."></textarea>
+        <div class="row bulk-actions">
+          <button id="runBulk" class="btn"><i class="fa-solid fa-table"></i> Check Semua</button>
+          <button id="clearBulk" class="btn"><i class="fa-solid fa-eraser"></i> Clear</button>
+        </div>
+        <table id="tbl">
+          <thead><tr><th style="text-align:left">URL</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </details>
+      <!-- ⇧⇧ BULK DIPINDAH KE SINI ⇧⇧ -->
 
       <div class="mode">
         <span class="pill">
@@ -44,20 +60,6 @@
       <div id="result" class="status wait">
         <i class="fa-solid fa-circle-question"></i> Belum ada pengecekan
       </div>
-
-      <!-- BULK: di bawah Link Check -->
-      <details class="bulk-wrap">
-        <summary>Bulk check — paste banyak URL</summary>
-        <textarea id="bulk" rows="6" placeholder="Satu URL per baris..."></textarea>
-        <div class="row bulk-actions">
-          <button id="runBulk" class="btn"><i class="fa-solid fa-table"></i> Check Semua</button>
-          <button id="clearBulk" class="btn"><i class="fa-solid fa-eraser"></i> Clear</button>
-        </div>
-        <table id="tbl">
-          <thead><tr><th style="text-align:left">URL</th><th>Status</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </details>
     </section>
 
     <!-- Panel daftar hasil -->
@@ -84,9 +86,7 @@
         </div>
       </div>
 
-      <ul id="historyList" class="history-list" aria-live="polite" aria-relevant="additions removals">
-        <!-- items injected here -->
-      </ul>
+      <ul id="historyList" class="history-list" aria-live="polite" aria-relevant="additions removals"></ul>
 
       <div class="meta">
         <span id="countIndicator">0 items</span>
