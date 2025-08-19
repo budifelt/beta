@@ -1,3 +1,10 @@
+/** Ambil subject saat ini dari XML (kalau ada) */
+function getXmlSubject() {
+  if (!xmlDoc) return '';
+  const mc = xmlDoc.querySelector('MessageContent');
+  return mc ? (mc.getAttribute('subject') || '') : '';
+}
+
 // ---- State & element refs ----
 let fileHandle;
 let xmlDoc;
@@ -46,14 +53,16 @@ function clearStatusIcon(id) {
 }
 
 /* =========================
-   Helpers: Campaign vs Link
+   Helpers: Campaign vs Link (4-digit preferred, then 3-digit)
    ========================= */
-function getFourDigitsFromCampaign(id) {
+function extractDigitsFromCampaignId(id) {
   if (!id) return null;
-  const m = id.match(/_(\d{4})\s*$/);
+  let m = id.match(/_(\d{4})$/); // prefer 4
+  if (m) return m[1];
+  m = id.match(/_(\d{3})$/);     // fallback 3
   return m ? m[1] : null;
 }
-function getFourDigitsFromLink(urlStr) {
+function extractDigitsFromLink(urlStr) {
   if (!urlStr) return null;
   let lastSeg = '';
   try {
@@ -64,15 +73,18 @@ function getFourDigitsFromLink(urlStr) {
     const parts = urlStr.split('/').filter(Boolean);
     lastSeg = parts[parts.length - 1] || '';
   }
-  const m = lastSeg.match(/^(\d{4})-/);
+  // Prefer 4 digits at start of last segment, else 3
+  let m = lastSeg.match(/^(\d{4})(?=\W|_|-)/);
+  if (m) return m[1];
+  m = lastSeg.match(/^(\d{3})(?=\W|_|-)/);
   return m ? m[1] : null;
 }
 function validateCampaignLinkPair(campaignId, link) {
-  const cid4 = getFourDigitsFromCampaign(campaignId);
-  const link4 = getFourDigitsFromLink(link);
-  if (!campaignId || !link) return { ok: true, expected: cid4, found: link4 };
-  if (!cid4 || !link4) return { ok: false, expected: cid4 || '(4-digit)', found: link4 || '(?)' };
-  return { ok: cid4 === link4, expected: cid4, found: link4 };
+  const cid = extractDigitsFromCampaignId(campaignId);
+  const lnk = extractDigitsFromLink(link);
+  if (!campaignId || !link) return { ok: true, expected: cid, found: lnk };
+  if (!cid || !lnk) return { ok: false, expected: cid || '(3–4 digit)', found: lnk || '(?)' };
+  return { ok: cid === lnk, expected: cid, found: lnk };
 }
 
 /* ---- Sidebar state ---- */
@@ -95,82 +107,28 @@ function clearFileListDisabled() {
 }
 
 /* ================================
-   KRHRED helpers (robust normalizer)
+   KRHRED helpers (robust + fast normalizer, case-insensitive)
    ================================ */
-/**
- * Normalisasi semua variasi KRHRED_XX / KRHRED_Unit_XX menjadi <%[KRHRED_Unit_XX]|%>
- * - KRHRED doang (tanpa angka) TIDAK diubah dan ditandai invalid (missingDetected=true).
- * - Menolerir typo umum: hilang '<' atau '>', hilang '%', hilang '|', kurung siku opsional,
- *   spasi/underscore/dash antar token, serta O/I/L → 0/1/1 untuk nomor.
- * Return: { text, missingDetected }
- */
+const KRHRED_FAST_RE = /<?%?\s*\[?\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]?\s*\|?\s*%?>?/gi;
 function normalizeKrhredTokens(text) {
   if (!text) return { text, missingDetected: false };
+  if (!/krhred/i.test(text)) return { text, missingDetected: false };
 
   const toDigits2 = (raw) => {
-    if (raw == null || raw === '') return null;
-    const s = String(raw);
-    const d = s
-      .replace(/[oO]/g,'0')
-      .replace(/[lI]/g,'1')
-      .replace(/\D/g,'');
-    return d ? d.padStart(2,'0').slice(-2) : null;
+    if (!raw) return null;
+    const d = String(raw)
+      .replace(/[oO]/g, '0')
+      .replace(/[lI]/g, '1')
+      .replace(/\D/g, '');
+    return d ? d.padStart(2, '0').slice(-2) : null;
   };
 
   let missingDetected = false;
-
-  // 0) Lindungi token yang SUDAH benar persis → perubahan nol
-  const placeholders = [];
-  text = text.replace(
-    /<%\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*%>/gi,
-    (m, num) => {
-      const canon = `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`;
-      const key = `__KRHRED_OK_${placeholders.length}__`;
-      placeholders.push([key, canon]);
-      return key;
-    }
-  );
-
-  // 1) Spesifik beberapa bentuk umum yang sering muncul
-  //    a) <[...]|>  (tanpa %)
-  text = text.replace(
-    /<\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*>/gi,
-    (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
-  );
-  //    b) <%[...]|>  (kurang '%>' akhir)
-  text = text.replace(
-    /<%\s*\[\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]\s*\|\s*>/gi,
-    (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
-  );
-  //    c) <KRHRED_XX> / <KRHRED Unit XX>
-  text = text.replace(
-    /<\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*>/gi,
-    (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
-  );
-  //    d) KRHRED_XX berdiri sendiri
-  text = text.replace(
-    /(?<![<\[])\bKRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\b(?!\s*[%>\]])/gi,
-    (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
-  );
-
-  // 2) Sapu jagat — menangkap bentuk yang kehilangan salah satu simbol:
-  //    contoh: "%[KRHRED_Unit_33]|%>" atau "[KRHRED_Unit_5]|%" atau "<%KRHRED_Unit_7%>"
-  //    Pola: opsional '<', opsional '%', opsional '[', ... angka wajib, opsional ']', opsional '|', opsional '%', opsional '>'
-  text = text.replace(
-    /<?%?\s*\[?\s*KRHRED(?:_Unit)?[_\s-]*([0-9oOlLiI]{1,2})\s*\]?\s*\|?\s*%?>?/gi,
-    (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`
-  );
-
-  // 3) KRHRED tanpa angka → tandai invalid (tidak diubah)
   if (/\bKRHRED\b(?![_\s-]*[0-9oOlLiI]{1,2})/i.test(text)) {
     missingDetected = true;
   }
 
-  // 4) Kembalikan placeholder (yang sudah valid sejak awal)
-  for (const [key, canon] of placeholders) {
-    text = text.replaceAll(key, canon);
-  }
-
+  text = text.replace(KRHRED_FAST_RE, (m, num) => `<%[KRHRED_Unit_${toDigits2(num) || '00'}]|%>`);
   return { text, missingDetected };
 }
 
@@ -201,9 +159,7 @@ function clearAllUI(opts = { clearStorage: false }) {
   saveFileBtn.style.borderColor = '';
   saveFileBtn.style.backgroundColor = '';
 
-  // pastikan tombol subject dinonaktifkan ketika tidak ada XML
   updateSubjectBtn.disabled = true;
-
   if (opts.clearStorage) localStorage.removeItem('config_state');
 }
 
@@ -247,7 +203,7 @@ saveFileBtn.addEventListener('click', async () => {
   });
 });
 
-/* ---- Live validation hubungan CampaignID ↔ Link ---- */
+/* ---- Live validation hubungan CampaignID ↔ Link (4-digit prefer, fallback 3-digit) ---- */
 function liveValidatePair() {
   const cid = campaignIdInput.value.trim();
   const lnk = linkInput.value.trim();
@@ -277,7 +233,6 @@ function loadXmlFromText(xmlText, { suppressAlert = false } = {}) {
     xmlDoc = null;
     initializeFields();
     updateEditor();
-    // subject button harus disable bila tidak ada XML
     gateSubjectButton();
     return;
   }
@@ -362,30 +317,43 @@ campaignIdInput.addEventListener('input', () => {
 });
 
 /* =========================
-   SUBJECT GATE (baru)
+   SUBJECT GATE
    ========================= */
-/** Mengatur enable/disable tombol Update Subject sesuai aturan KRHRED */
 function gateSubjectButton() {
   const raw = subjectInput.value || '';
-  const { missingDetected } = normalizeKrhredTokens(raw);
   const noXml = !xmlDoc;
   const empty = raw.trim() === '';
 
-  // Disable jika: tidak ada XML, atau kosong, atau ada KRHRED tanpa angka
-  updateSubjectBtn.disabled = noXml || empty || missingDetected;
+  const normRes = normalizeKrhredTokens(raw);
+  const normalized = normRes.text;
+  const missingDetected = normRes.missingDetected;
 
-  // styling
-  if (missingDetected) {
-    subjectInput.classList.add('error');
-    setStatusIcon('subjectCheckmark', 'error');
+  if (noXml || empty || missingDetected) {
+    updateSubjectBtn.disabled = true;
+    if (missingDetected) {
+      subjectInput.classList.add('error');
+      setStatusIcon('subjectCheckmark', 'error');
+    } else {
+      subjectInput.classList.remove('error');
+      clearStatusIcon('subjectCheckmark');
+    }
+    return;
+  }
+
+  const xmlSubject = getXmlSubject();
+  const sameAsXml = normalized.trim() === (xmlSubject || '').trim();
+
+  updateSubjectBtn.disabled = sameAsXml;
+  subjectInput.classList.remove('error');
+
+  if (sameAsXml) {
+    setStatusIcon('subjectCheckmark', 'ok');
   } else {
-    subjectInput.classList.remove('error');
     clearStatusIcon('subjectCheckmark');
   }
 }
 
 subjectInput.addEventListener('input', () => {
-  // reset icon ketika user mengetik & evaluasi aturan
   clearStatusIcon('subjectCheckmark');
   gateSubjectButton();
 });
@@ -395,7 +363,6 @@ subjectInput.addEventListener('input', () => {
    ========================= */
 updateCampaignIdBtn.addEventListener('click', () => {
   if (!xmlDoc) return alert("No XML loaded.");
-
   const val = campaignIdInput.value.trim();
 
   if (val === '') {
@@ -411,6 +378,7 @@ updateCampaignIdBtn.addEventListener('click', () => {
     return;
   }
 
+  // Live check against link with 4-digit priority, else 3-digit
   const ln = linkInput.value.trim();
   if (ln) {
     const res = validateCampaignLinkPair(val, ln);
@@ -456,33 +424,36 @@ updateCampaignIdBtn.addEventListener('click', () => {
   setStatusIcon('campaignIdCheckmark', 'ok');
 });
 
-/* ---- Clear icons saat mengetik ---- */
 campaignIdInput.addEventListener('input', () => clearStatusIcon('campaignIdCheckmark'));
 linkInput.addEventListener('input', () => clearStatusIcon('linkCheckmark'));
 
 /* =========================
-   UPDATE SUBJECT (KRHRED rules)
+   UPDATE SUBJECT
    ========================= */
 updateSubjectBtn.addEventListener('click', () => {
   if (!xmlDoc) { alert("No XML loaded."); return; }
-
   const messageContent = xmlDoc.querySelector('MessageContent');
   if (!messageContent) { alert("MessageContent not found in XML."); return; }
 
-  // 1) Normalisasi semua KRHRED_XX → <%[KRHRED_Unit_XX]|%>
-  // 2) KRHRED tanpa angka → TOLAK (tidak tulis ke XML)
   let s = subjectInput.value.replace(/\s{2,}/g, ' ').trim();
-  const { text: normalized, missingDetected } = normalizeKrhredTokens(s);
+  const result = normalizeKrhredTokens(s);
+  const normalized = result.text;
+  const missingDetected = result.missingDetected;
 
   if (missingDetected || normalized.trim() === '') {
     subjectInput.classList.add('error');
     setStatusIcon('subjectCheckmark', 'error');
-    // Jangan tulis ke XML
-    gateSubjectButton(); // pastikan state tombol konsisten
+    gateSubjectButton();
     return;
   }
 
-  // tulis ke input + XML
+  const currentXml = getXmlSubject();
+  if (normalized.trim() === (currentXml || '').trim()) {
+    setStatusIcon('subjectCheckmark', 'ok');
+    updateSubjectBtn.disabled = true;
+    return;
+  }
+
   s = normalized;
   subjectInput.value = s;
 
@@ -491,8 +462,9 @@ updateSubjectBtn.addEventListener('click', () => {
 
   messageContent.setAttribute('subject', s);
   setStatusIcon('subjectCheckmark', 'ok');
+
   updateEditor();
-  gateSubjectButton();
+  updateSubjectBtn.disabled = true;
 });
 
 /* =========================
@@ -500,7 +472,6 @@ updateSubjectBtn.addEventListener('click', () => {
    ========================= */
 updateLinkBtn.addEventListener('click', () => {
   if (!xmlDoc) return alert("No XML loaded.");
-
   const messageBody = xmlDoc.querySelector('MessageBody');
   if (!messageBody) return;
 
@@ -590,7 +561,7 @@ folderOpenBtn.addEventListener('click', async () => {
         li.classList.add('file');
         li.title = entry.name;
 
-        const fileIconSpan = document.createElement('span'); fileIconSpan.classList.add('file-icon'); fileIconSpan.textContent = "📄"; li.appendChild(fileIconSpan);
+        const fileIconSpan = document.createElement('span'); fileIconSpan.classList.add('file-icon'); li.appendChild(fileIconSpan);
         const fileNameSpan = document.createElement('span'); fileNameSpan.classList.add('file-name'); fileNameSpan.textContent = entry.name; li.appendChild(fileNameSpan);
 
         li.addEventListener('click', async (e) => {
@@ -616,9 +587,7 @@ folderOpenBtn.addEventListener('click', async () => {
           fileList.querySelectorAll('li').forEach(sib => sib.classList.remove('selected'));
           li.classList.add('selected');
 
-          // evaluasi lagi tombol subject setelah file dibuka
           gateSubjectButton();
-
           saveState();
         });
 
@@ -645,7 +614,7 @@ function formatXml(xml) {
       indent = 0;
     } else if (/^<\/\w/.test(node)) {
       if (pad !== 0) pad -= 1;
-    } else if (/^<\w[^>]*[^\/]>.*$/.test(node)) {
+    } else if (/^<\w[^>]*[^\/]?>.*$/.test(node)) {
       indent = 1;
     }
     let padding = '';
