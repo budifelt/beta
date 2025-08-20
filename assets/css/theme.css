@@ -8,7 +8,7 @@
   --surface:#0b1220; --surface-elev:#111827;
   --text:#e5e7eb; --text-strong:#f3f4f6; --muted:#9aa4b2;
   --ring:#7c89ff; --glow1:#667eea; --glow2:#764ba2;
-  --radius:16px; --space:clamp(14px,2vw,24px); --container:1100px;
+  --radius:10px; --space:clamp(14px,2vw,24px); --container:1100px;
   --shadow:0 10px 28px rgba(0,0,0,.30);
   --shadow-lg:0 22px 60px rgba(20,30,60,.45);
 }

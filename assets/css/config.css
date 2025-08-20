@@ -1,193 +1,151 @@
-/* ---- existing styles (dari file kamu) ---- */
+/* ---- base ---- */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   height: 100vh;
   display: flex;
   overflow: hidden;
-  background-color: #fce8e6;
-  color: #222222;
+  background-color: #f5f6fa;
+  color: #222;
 }
+
+/* Sidebar */
 #sidebar {
-  width: 250px;
-  min-width: 250px;
-  max-width: 250px;
-  background-color: #f9d5d3;
-  color: #222222;
+  width: 350px;
+  min-width: 350px;
+  max-width: 350px;
+  background-color: #1e293b; /* abu gelap */
+  color: #f1f5f9;
   display: flex;
   flex-direction: column;
   padding: 10px;
   box-sizing: border-box;
   overflow: hidden;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+  box-shadow: 2px 0 6px rgba(0,0,0,0.15);
 }
-#sidebar h2 {
-  color: #222222;
-  font-size: 1.2em;
-  margin: 0 0 10px 0;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e6b8b5;
-}
+
 #folderOpenBtn {
-  background-color: #222222;
+  background-color: #3b82f6;
   border: none;
   color: white;
   padding: 8px 12px;
   font-size: 1em;
   cursor: pointer;
   margin-bottom: 10px;
-  border-radius: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-#folderOpenBtn:hover { background-color: #444444; }
-#fileList { flex-grow: 1; overflow-y: auto; border-top: 1px solid #e6b8b5; padding-top: 10px; }
+#folderOpenBtn:hover { background-color: #2563eb; }
+
+/* File list (scrollable) */
+#fileList {
+  flex-grow: 1;
+  overflow-y: auto;
+  border-top: 1px solid #334155;
+  padding-top: 10px;
+}
 #fileList ul { list-style: none; padding-left: 0; margin: 0; }
 #fileList li {
-  padding: 5px 8px 5px 28px;
+  padding: 6px 10px;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: 8px;
   position: relative;
   user-select: none;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e2e8f0;
 }
-#fileList li:hover, #fileList li:focus { outline: none; background-color: #e6b8b5; }
-#fileList li.selected { background-color: #d9a8a5; }
-#fileList li.folder { padding-left: 20px; position: relative; display: block; }
-#fileList li.folder .arrow { display: inline-block; width: 12px; height: 12px; margin-right: 4px; cursor: pointer; user-select: none; transition: transform 0.2s ease; vertical-align: middle; }
-#fileList li.folder .arrow::before { content: "▶"; display: inline-block; font-size: 12px; line-height: 12px; transform-origin: center; }
-#fileList li.folder.open > .arrow::before { transform: rotate(90deg); }
-#fileList li.folder .folder-icon { display: inline-block; width: 16px; height: 16px; margin-right: 6px; user-select: none; vertical-align: middle; }
-#fileList li.folder .folder-icon::before { content: "📁"; font-size: 16px; line-height: 16px; }
-#fileList li.folder .folder-name { display: inline-block; user-select: none; vertical-align: middle; white-space: nowrap; }
-#fileList li.file { padding-left: 8px; position: relative; white-space: nowrap; display: flex; align-items: center; }
-#fileList li.file::before { content: none; }
-#fileList li.file .file-icon { margin-right: 6px; font-size: 16px; line-height: 16px; user-select: none; }
-#fileList li.file .file-name { white-space: nowrap; }
-#fileList ul { list-style: none; padding-left: 20px; margin: 0; position: relative; }
-#fileList ul::before { content: ""; position: absolute; top: 0; left: 10px; width: 1px; height: 100%; background: #e6b8b5; }
-#fileList li { position: relative; padding-left: 20px; }
-#fileList li::before { content: ""; position: absolute; top: 12px; left: 0; width: 10px; height: 1px; background: #e6b8b5; }
-#fileList li:last-child::before { background: transparent; }
-#fileList li.folder > ul { margin-left: 0; }
-#fileList li:hover, #fileList li:focus { box-shadow: none; }
-#mainContent { flex-grow: 1; padding: 20px; overflow-y: auto; background-color: #fff0f0; color: #222222; }
+#fileList li:hover, #fileList li:focus {
+  outline: none;
+  background-color: #334155; /* hover abu gelap */
+}
+#fileList li.selected {
+  background-color: #2563eb; /* biru elegan */
+  color: #fff;
+  font-weight: 600;
+}
 
+/* Folder/file rows */
+#fileList li.folder .arrow i { font-size: 14px; color: #94a3b8; transition: transform .2s ease; }
+#fileList li.folder.open .arrow i { transform: rotate(90deg); }
+#fileList li.folder .folder-icon i { font-size: 16px; color: #fbbf24; }
+#fileList li.folder.open .folder-icon i { color: #fde047; }
+
+#fileList li.file .file-icon i { font-size: 15px; color: #94a3b8; }
+#fileList li .folder-name, #fileList li .file-name {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex: 1 1 auto; min-width: 0;
+}
+
+/* Tree rails */
+#fileList ul { padding-left: 16px; margin: 0; position: relative; }
+#fileList ul::before { content: ""; position: absolute; top: 0; left: 8px; width: 1px; height: 100%; background: #334155; }
+#fileList li::before { content: ""; position: absolute; top: 50%; left: 0; width: 8px; height: 1px; background: #334155; transform: translateY(-50%); }
+#fileList li:last-child::before { background: transparent; }
+
+/* Main content */
 #mainContent {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
   background: #0b1220 !important;
   border-radius: 16px !important;
-  padding: 20px !important;
   box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
   margin: 20px !important;
+  color: #f8fafc;
 }
 
-label { display: block; margin-top: 15px; font-weight: 600; color: #222222; }
+label { display: block; margin-top: 15px; font-weight: 600; color: #e2e8f0; }
 input[type="text"], select {
   width: 550px;
   padding: 8px 12px;
   font-size: 1em;
-  border: 1px solid #e6b8b5;
-  border-radius: 20px;
-  background-color: #fff;
-  color: #222222;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background-color: #1e293b;
+  color: #f8fafc;
   transition: border-color 0.3s ease;
 }
-input[type="text"]:focus, select:focus { border-color: #d9a8a5; outline: none; }
+input[type="text"]:focus, select:focus { border-color: #2563eb; outline: none; }
+
 textarea {
   width: 100%;
   height: 350px;
   margin-top: 20px;
   font-family: monospace;
   font-size: 0.9em;
-  border: 1px solid #e6b8b5;
-  border-radius: 20px;
-  background-color: #fff;
-  color: #222222;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background-color: #1e293b;
+  color: #f8fafc;
   padding: 10px;
   resize: vertical;
 }
+
 button {
   margin-top: 15px;
   padding: 10px 20px;
   font-size: 1em;
-  background-color: #222222;
+  background-color: #3b82f6;
   color: white;
   border: none;
-  border-radius: 20px;
+  border-radius: 10px;
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
   transition: background-color 0.3s ease;
 }
-button:hover { background-color: #444444; }
-#campaignCountIndicator { font-weight: 600; margin-left: 10px; color: #222222; }
+button:hover { background-color: #2563eb; }
 
-#campaignIdValidation { margin-top: 4px; font-size: 14px; color: #666666; display: flex; justify-content: flex-start; gap: 8px; }
-#campaignIdValidation label { font-weight: normal; }
+#campaignCountIndicator { font-weight: 600; margin-left: 10px; color: #f8fafc; }
 
-/* Tooltip */
-.tooltip { position: relative; display: inline-block; }
-.tooltip .tooltiptext {
-  visibility: hidden; width: max-content; max-width: 200px; background-color: #222222; color: #fff;
-  text-align: center; border-radius: 10px; padding: 10px 14px; position: absolute; z-index: 10; bottom: 125%;
-  left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 15px; font-weight: normal;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-.tooltip .tooltiptext::after {
-  content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-  border-width: 6px; border-style: solid; border-color: #222222 transparent transparent transparent;
-}
-.tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
-
-.back-btn {
-  position: fixed; top: auto; right: auto; background: #222; color: #fff;
-  border: none; border-radius: 50%; width: 42px; height: 42px; font-size: 20px; font-weight: bold;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: background 0.2s ease, transform 0.2s ease; z-index: 1000;
-  bottom: 16px;
-  left: 16px;
-}
-.back-btn:hover { background: #444; transform: scale(1.08); }
-
-/* Sidebar state saat butuh Reopen */
-#fileList.needs-reopen { position: relative; pointer-events: none; opacity: 0.6; }
-#fileList .filelist-placeholder {
-  font-size: 14px; color: #222222; background: #fff7f7; border: 1px dashed #e6b8b5;
-  border-radius: 12px; padding: 10px 12px; margin-top: 8px;
-}
-
-/* ========= Sidebar / File Tree — Dark-friendly colors ========= */
-:root {
-  --side-bg: #0b1220; --side-text: #e5e7eb; --side-muted: #94a3b8; --side-border: #1f2937;
-  --accent: #6366f1; --accent-weak: rgba(99,102,241,.12); --accent-weak-2: rgba(59,130,246,.10);
-}
-html[data-theme="light"] {
-  --side-bg: #f8fafc; --side-text: #0f172a; --side-muted: #475569; --side-border: #e2e8f0;
-  --accent: #4f46e5; --accent-weak: rgba(79,70,229,.10); --accent-weak-2: rgba(59,130,246,.08);
-}
-#fileList ul li, #fileList .folder-name, #fileList .file-name { color: var(--side-text); }
-#fileList .arrow, #fileList .folder-icon, #fileList .file-icon { color: var(--side-muted); }
-#fileList li.file:hover, #fileList li.folder:hover { background: rgba(148,163,184,.08); }
-#fileList li.file.selected {
-  background: var(--accent-weak); outline: 1px solid rgba(99,102,241,.35); border-left: 2px solid var(--accent);
-}
-#fileList.needs-reopen { position: relative; pointer-events: none; opacity: 1; background: transparent; }
-#fileList .filelist-placeholder {
-  display: block; font-size: 13.5px; line-height: 1.45; color: var(--side-text);
-  background: linear-gradient(135deg, var(--accent-weak), rgba(99,102,241,.06));
-  border: 1px dashed rgba(99,102,241,.35); border-radius: 12px; padding: 12px 14px; margin: 8px 6px 4px 6px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.22);
-}
-
-/* Sidebar lebih lebar */
-#sidebar { width: 350px !important; min-width: 350px !important; max-width: 350px !important; }
-
-/* Nama file/folder jangan ditekuk */
-#fileList .folder-name, #fileList .file-name{
-  display: inline-block; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
-}
-#fileList li.file .file-name{ flex: 1 1 auto; min-width: 0; }
-
-/* === Tambahan untuk ikon status FA === */
+/* status icon (FA) */
 .field.has-icon { position: relative; display: inline-block; }
 .field.has-icon input[type="text"] { padding-right: 32px; }
 .status-icon {
@@ -200,27 +158,30 @@ html[data-theme="light"] {
   pointer-events: none;
   font-size: 18px;
 }
-.status-icon i.fa-circle-check { color: #22c55e; } /* hijau */
-.status-icon i.fa-circle-xmark { color: #ef4444; } /* merah */
+.status-icon i.fa-circle-check { color: #22c55e; }
+.status-icon i.fa-circle-xmark { color: #ef4444; }
 
-/* state error pada input */
+/* error ring */
 input.error, textarea.error {
   border-color: #ef4444 !important;
-  outline-color: #ef4444 !important;
+  outline: 2px solid rgba(239,68,68,.35) !important;
 }
 
-/* === Error state yang tegas (pastikan terlihat di tema gelap) === */
-.field.has-icon input.error,
-input.error,
-textarea.error {
-  border-color: #ef4444 !important;
-  outline: 2px solid rgba(239,68,68,.35) !important;   /* ring merah */
-  box-shadow: inset 0 0 0 999px transparent !important; /* netralisir styling tema */
+/* back button */
+.back-btn {
+  position: fixed; bottom: 16px; left: 16px;
+  background: #3b82f6; color: #fff; border: none; border-radius: 50%;
+  width: 42px; height: 42px; font-size: 20px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: background 0.2s ease, transform 0.2s ease; z-index: 1000;
 }
+.back-btn:hover { background: #2563eb; transform: scale(1.08); }
 
-@supports (bottom: env(safe-area-inset-bottom)){
-  .back-btn{
-    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
-    left: max(16px, calc(env(safe-area-inset-left) + 8px));
-  }
+
+/* ===== Scroll fix overrides (placed after theme.css would win; but we add !important) ===== */
+#sidebar { display: flex; flex-direction: column; min-height: 100vh; }
+#fileList {
+  flex: 1 1 auto;
+  min-height: 0 !important;      /* allow flex child to shrink and scroll */
+  overflow-y: auto !important;    /* override theme overflow:hidden */
+  overflow-x: hidden !important;
 }
