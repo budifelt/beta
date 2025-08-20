@@ -1,1 +1,76 @@
-<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="assets/css/config.css"><link rel="stylesheet" href="assets/css/theme.css"><!-- Font Awesome for status icons --><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>EDM Config Editor @budifelt</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"/></head><body><div id="sidebar"><button id="folderOpenBtn">Open Folder</button><div id="fileList"><ul></ul></div></div><div id="mainContent"><h1>EDM Config Editor</h1><!-- Campaign ID --><label for="campaignId">Campaign ID: <span id="campaignIdCharCount">(0)</span></label><div class="field has-icon"><input type="text" id="campaignId" /><span id="campaignIdCheckmark" class="status-icon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span></div><button id="updateCampaignIdBtn">Update Campaign ID</button><span id="campaignCountIndicator"></span><div id="campaignIdValidation" style="display:flex;align-items:center;gap:10px;"><span id="mismatchWarning" style="color:red; display:none;">Campaign ID and link mismatch!</span></div><!-- Subject --><label for="subject">Subject: <span id="subjectCharCount">(0)</span></label><div class="field has-icon"><input type="text" id="subject" /><span id="subjectCheckmark" class="status-icon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span></div><button id="updateSubjectBtn">Update Subject</button><!-- Link --><label for="link">Link (content):</label><div class="field has-icon"><input type="text" id="link" /><span id="linkCheckmark" class="status-icon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span></div><button id="updateLinkBtn">Update Link</button><button id="saveFileBtn">Save Changes</button><div style="display:flex;align-items:center;gap:10px;"><h2>XML Content</h2></div><div id="editor" style="white-space: pre-wrap; font-family: monospace; height: 350px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background-color: white;"></div></div><!-- Tombol Back ke Index --><button class="back-btn" onclick="window.location.href='index.html'"><i class="fa-solid fa-house"></i></button><script src="assets/js/config.js" defer></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="assets/css/config.css">
+  <link rel="stylesheet" href="assets/css/theme.css">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EDM Config Editor @budifelt</title>
+</head>
+<body>
+  <div id="sidebar">
+    <button id="folderOpenBtn">
+      <i class="fa-solid fa-folder-open"></i> Open Folder
+    </button>
+    <div id="fileList"><ul></ul></div>
+  </div>
+
+  <div id="mainContent">
+    <h1>EDM Config Editor</h1>
+
+    <!-- Campaign ID -->
+    <label for="campaignId">Campaign ID: <span id="campaignIdCharCount">(0)</span></label>
+    <div class="field has-icon">
+      <input type="text" id="campaignId" />
+      <span id="campaignIdCheckmark" class="status-icon">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      </span>
+    </div>
+    <button id="updateCampaignIdBtn">Update Campaign ID</button>
+    <span id="campaignCountIndicator"></span>
+    <div id="campaignIdValidation" style="display:flex;align-items:center;gap:10px;">
+      <span id="mismatchWarning" style="color:red; display:none;">Campaign ID and link mismatch!</span>
+    </div>
+
+    <!-- Subject -->
+    <label for="subject">Subject: <span id="subjectCharCount">(0)</span></label>
+    <div class="field has-icon">
+      <input type="text" id="subject" />
+      <span id="subjectCheckmark" class="status-icon">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      </span>
+    </div>
+    <button id="updateSubjectBtn">Update Subject</button>
+
+    <!-- Link -->
+    <label for="link">Link (content):</label>
+    <div class="field has-icon">
+      <input type="text" id="link" />
+      <span id="linkCheckmark" class="status-icon">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      </span>
+    </div>
+    <button id="updateLinkBtn">Update Link</button>
+
+    <button id="saveFileBtn">Save Changes</button>
+
+    <div style="display:flex;align-items:center;gap:10px;">
+      <h2>XML Content</h2>
+    </div>
+    <div id="editor"
+         style="white-space: pre-wrap; font-family: monospace; height: 350px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background-color: white;">
+    </div>
+  </div>
+
+  <button class="back-btn" onclick="window.location.href='index.html'">
+    <i class="fa-solid fa-house"></i>
+  </button>
+
+  <script src="assets/js/config.js" defer></script>
+</body>
+</html>
