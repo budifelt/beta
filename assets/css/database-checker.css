@@ -125,3 +125,25 @@ body{
 #fileList::-webkit-scrollbar-thumb, #databaseContent::-webkit-scrollbar-thumb, .krhred-rows::-webkit-scrollbar-thumb{
   background:color-mix(in srgb, #6366f1 35%, #0b0f1c); border:3px solid #0b0f1c; border-radius:12px;
 }
+
+
+/* === Single-row flex layout === */
+.krhred-rows{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow:auto;padding-right:6px;font-family:'Courier New',monospace}
+.krhred-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:flex-start;
+  padding:8px 10px;
+  border:1px solid #1f2937;
+  border-radius:10px;
+  background:#0e1628;
+}
+.krhred-row code{font-weight:800;white-space:nowrap;}
+.krhred-row .input.value{
+  flex:1 1 auto;
+  min-width:0;
+  white-space:normal;
+  word-break:break-word;
+}
+.value-long{color:#f87171;font-weight:700}
