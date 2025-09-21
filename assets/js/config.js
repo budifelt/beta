@@ -8,7 +8,7 @@ function getXmlSubject() {
 // ---- State & element refs ----
 let fileHandle;
 let xmlDoc;
-let currentDirHandle = null;
+let currentDirfileHandle = null;
 
 const saveFileBtn = document.getElementById('saveFileBtn');
 const editor = document.getElementById('editor');
@@ -28,14 +28,14 @@ const folderOpenBtn = document.getElementById('folderOpenBtn');
 const fileListRoot = document.getElementById('fileList');
 
 // NEW: opened file bar element (create if missing)
-let openedFileBar = document.getElementById('openedFileBar');
-if (!openedFileBar) {
-  openedFileBar = document.createElement('div');
-  openedFileBar.id = 'openedFileBar';
-  openedFileBar.innerHTML = `<i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>No file opened</span>`;
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar) sidebar.appendChild(openedFileBar);
-}
+// let openedFileBar = document.getElementById('openedFileBar');
+// if (!openedFileBar) {
+//   openedFileBar = document.createElement('div');
+//   // openedFileBar.id = 'openedFileBar';
+//   openedFileBar.innerHTML = `<i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>No file opened</span>`;
+//   const sidebar = document.getElementById('sidebar');
+//   if (sidebar) sidebar.appendChild(openedFileBar);
+// }
 
 /* Util: label tombol dengan ikon FA */
 function setFolderBtn(label, danger = false) {
@@ -155,7 +155,7 @@ function normalizeKrhredTokens(text) {
 
 /* CLEAR / RESET */
 function clearAllUI(opts = { clearStorage: false }) {
-  xmlDoc = null; fileHandle = null;
+  xmlDoc = null; filefileHandle = null;
   [campaignIdInput, subjectInput, linkInput].forEach(inp => {
     inp.value = '';
     inp.classList.remove('error');
@@ -221,11 +221,13 @@ function extractCountByCampaignId(campaignId) {
 function updateCampaignCountIndicator(campaignId) {
   const n = extractCountByCampaignId(campaignId);
   if (!campaignId || !xmlDoc) {
+    campaignCountIndicator.style.backgroundColor = "#ef4444"; // red
     campaignCountIndicator.textContent = "0/7";
-    campaignCountIndicator.style.color = "red";
+    campaignCountIndicator.title = "0/7";
   } else {
+    campaignCountIndicator.style.backgroundColor = (n === 7) ? "#22c55e" : "#ef4444"; // green/red
     campaignCountIndicator.textContent = n + "/7";
-    campaignCountIndicator.style.color = (n === 7) ? "green" : "red";
+    campaignCountIndicator.title = n + "/7";
   }
 }
 function liveValidatePair() {
@@ -687,3 +689,19 @@ function decorateButtons() {
   decorate(updateSubjectBtn, '✉️');
   decorate(updateLinkBtn, '🔗');
 }
+
+// === Apply Update combo button ===
+(function(){
+  const applyUpdateBtn = document.getElementById('applyUpdateBtn');
+  if (applyUpdateBtn) {
+    applyUpdateBtn.addEventListener('click', () => {
+      // Call the existing individual updaters to preserve logic
+      const a = document.getElementById('updateCampaignIdBtn');
+      const b = document.getElementById('updateSubjectBtn');
+      const c = document.getElementById('updateLinkBtn');
+      if (a) a.click();
+      if (b) b.click();
+      if (c) c.click();
+    });
+  }
+})();
