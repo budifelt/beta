@@ -1,187 +1,191 @@
-/* ---- base ---- */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  overflow: hidden;
-  background-color: #f5f6fa;
-  color: #222;
+/* =========== Layout =========== */
+:root {
+  --bg: #0f172a;
+  --card: #121a33;
+  --muted: #94a3b8;
+  --text: #e2e8f0;
+  --primary: #2563eb;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --border: #243045;
+  --accent: #334155;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0b142b,#0f172a)}
+.topbar .left{display:flex;gap:10px;align-items:center}
+.btn{border:1px solid var(--border);background:var(--accent);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow)}
+.btn.primary{background:#1d4ed8}
+.btn.success{background:#166534}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.breadcrumb{opacity:.8}
+
+.layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 52px)}
+.sidebar{border-right:1px solid var(--border);background:rgba(18,26,51,.6);backdrop-filter:saturate(140%) blur(6px)}
+.sidebar-head{padding:10px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;justify-content:space-between}
+.sidebar-title{font-weight:600;display:flex;gap:8px;align-items:center}
+.filter-wrap{display:flex;gap:8px;align-items:center;background:#0e162d;border:1px solid var(--border);padding:6px 10px;border-radius:10px;width:100%}
+.filter-wrap input{flex:1;background:transparent;border:none;outline:none;color:var(--text)}
+.sidebar-body{max-height:calc(100vh - 140px);overflow:auto;padding:8px}
+.sidebar ul{list-style:none;margin:0;padding-left:12px}
+.sidebar li{display:flex;align-items:center;gap:8px;padding:6px 6px;border-radius:8px;cursor:pointer}
+.sidebar li:hover{background:#0e162d}
+.sidebar li.selected{background:#132044;border:1px solid #1b2c52}
+.folder .arrow{width:16px;display:inline-flex;justify-content:center;opacity:.7}
+.folder .folder-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.folder.open > .arrow i{transform:rotate(90deg)}
+.file .file-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{background:#0e162d;border:1px solid var(--border);padding:2px 6px;border-radius:999px;font-size:12px;color:var(--muted)}
+
+.content{padding:14px;display:flex;flex-direction:column;gap:12px}
+.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.field label{display:block;margin-bottom:6px;color:var(--muted)}
+.control{display:flex;gap:8px;align-items:center}
+.control input{flex:1;background:#0e162d;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 10px;outline:none}
+.control input.error{border-color:var(--danger)}
+.status i{font-size:16px;vertical-align:-2px}
+.warn{color:#f59e0b}
+.buttons{grid-column:1 / -1;display:flex;gap:10px}
+.editor{background:#0b142b;border:1px solid var(--border);border-radius:12px;padding:12px;min-height:40vh;overflow:auto;white-space:pre-wrap}
+
+.muted{color:var(--muted)}
+
+.overlay{position:fixed;inset:0;background:rgba(2,6,23,.55);display:grid;place-items:center;z-index:50}
+.spinner{background:#0b142b;border:1px solid var(--border);padding:16px 18px;border-radius:12px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center}
+
+@media (max-width: 960px){
+  .layout{grid-template-columns:1fr}
+  .controls{grid-template-columns:1fr}
+  .sidebar{max-height:42vh;border-right:none;border-bottom:1px solid var(--border)}
+  .content{padding-top:4px}
 }
 
-/* Sidebar */
-#sidebar {
-  width: 350px;
-  min-width: 350px;
-  max-width: 350px;
-  background-color: #1e293b; /* abu gelap */
-  color: #f1f5f9;
+
+/* Ensure hidden attribute always hides */
+[hidden]{display:none!important}
+
+
+#updateForm {
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  box-sizing: border-box;
-  overflow: hidden;
-  box-shadow: 2px 0 6px rgba(0,0,0,0.15);
+  gap: 14px;
+  max-width: 650px;
+}
+#updateForm label { font-weight: 600; margin-bottom: 4px; }
+#updateForm input[type="text"] {
+  height: 40px; padding: 8px 12px; border-radius: 10px;
+  border: 1px solid var(--ring, #1f2a44);
+  background: #091324; color: #e6edf3;
+}
+.form-actions { display: flex; gap: 12px; margin-top: 8px; }
+#applyUpdateBtn {
+  background: var(--blue, #3b82f6);
+  border: none; color: white; border-radius: 10px;
+  padding: 10px 18px; font-weight: 600;
+}
+#saveFileBtn {
+  background: linear-gradient(180deg, #27cb6a, #16a34a);
+  border: none; color: #06240f; border-radius: 10px;
+  padding: 10px 18px; font-weight: 700;
 }
 
-#folderOpenBtn {
-  background-color: #3b82f6;
-  border: none;
-  color: white;
-  padding: 8px 12px;
-  font-size: 1em;
-  cursor: pointer;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: background-color 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-#folderOpenBtn:hover { background-color: #2563eb; }
 
-/* File list (scrollable) */
-#fileList {
-  flex-grow: 1;
-  overflow-y: auto;
-  border-top: 1px solid #334155;
-  padding-top: 10px;
-}
-#fileList ul { list-style: none; padding-left: 0; margin: 0; }
-#fileList li {
-  padding: 6px 10px;
-  cursor: pointer;
-  border-radius: 8px;
-  position: relative;
-  user-select: none;
-  transition: background-color 0.25s ease, color 0.25s ease;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #e2e8f0;
-}
-#fileList li:hover, #fileList li:focus {
-  outline: none;
-  background-color: #334155; /* hover abu gelap */
-}
-#fileList li.selected {
-  background-color: #2563eb; /* biru elegan */
-  color: #fff;
-  font-weight: 600;
-}
-
-/* Folder/file rows */
-#fileList li.folder .arrow i { font-size: 14px; color: #94a3b8; transition: transform .2s ease; }
-#fileList li.folder.open .arrow i { transform: rotate(90deg); }
-#fileList li.folder .folder-icon i { font-size: 16px; color: #fbbf24; }
-#fileList li.folder.open .folder-icon i { color: #fde047; }
-
-#fileList li.file .file-icon i { font-size: 15px; color: #94a3b8; }
-#fileList li .folder-name, #fileList li .file-name {
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  flex: 1 1 auto; min-width: 0;
-}
-
-/* Tree rails */
-#fileList ul { padding-left: 16px; margin: 0; position: relative; }
-#fileList ul::before { content: ""; position: absolute; top: 0; left: 8px; width: 1px; height: 100%; background: #334155; }
-#fileList li::before { content: ""; position: absolute; top: 50%; left: 0; width: 8px; height: 1px; background: #334155; transform: translateY(-50%); }
-#fileList li:last-child::before { background: transparent; }
-
-/* Main content */
-#mainContent {
-  flex-grow: 1;
-  padding: 20px;
-  overflow-y: auto;
-  background: #0b1220 !important;
-  border-radius: 16px !important;
-  box-shadow: 0 10px 28px rgba(0,0,0,.30) !important;
-  margin: 20px !important;
-  color: #f8fafc;
-}
-
-label { display: block; margin-top: 15px; font-weight: 600; color: #e2e8f0; }
-input[type="text"], select {
-  width: 550px;
-  padding: 8px 12px;
-  font-size: 1em;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  background-color: #1e293b;
-  color: #f8fafc;
-  transition: border-color 0.3s ease;
-}
-input[type="text"]:focus, select:focus { border-color: #2563eb; outline: none; }
-
-textarea {
-  width: 100%;
-  height: 350px;
-  margin-top: 20px;
-  font-family: monospace;
-  font-size: 0.9em;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  background-color: #1e293b;
-  color: #f8fafc;
-  padding: 10px;
-  resize: vertical;
-}
-
-button {
-  margin-top: 15px;
-  padding: 10px 20px;
-  font-size: 1em;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  transition: background-color 0.3s ease;
-}
-button:hover { background-color: #2563eb; }
-
-#campaignCountIndicator { font-weight: 600; margin-left: 10px; color: #f8fafc; }
-
-/* status icon (FA) */
-.field.has-icon { position: relative; display: inline-block; }
-.field.has-icon input[type="text"] { padding-right: 32px; }
-.status-icon {
-  display: none;
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  line-height: 1;
-  pointer-events: none;
-  font-size: 18px;
-}
-.status-icon i.fa-circle-check { color: #22c55e; }
-.status-icon i.fa-circle-xmark { color: #ef4444; }
-
-/* error ring */
-input.error, textarea.error {
-  border-color: #ef4444 !important;
-  outline: 2px solid rgba(239,68,68,.35) !important;
-}
-
-/* back button */
-.back-btn {
-  position: fixed; bottom: 16px; left: 16px;
-  background: #3b82f6; color: #fff; border: none; border-radius: 50%;
-  width: 42px; height: 42px; font-size: 20px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: background 0.2s ease, transform 0.2s ease; z-index: 1000;
-}
-.back-btn:hover { background: #2563eb; transform: scale(1.08); }
+/* === Overrides for vertical form and 2 buttons at bottom === */
+.controls{display:flex;flex-direction:column;gap:12px}
+.buttons{display:flex;gap:10px;justify-content:flex-end}
+#updateCampaignIdBtn,#updateSubjectBtn,#updateLinkBtn{display:none!important}
 
 
-/* ===== Scroll fix overrides (placed after theme.css would win; but we add !important) ===== */
-#sidebar { display: flex; flex-direction: column; min-height: 100vh; }
-#fileList {
-  flex: 1 1 auto;
-  min-height: 0 !important;      /* allow flex child to shrink and scroll */
-  overflow-y: auto !important;    /* override theme overflow:hidden */
-  overflow-x: hidden !important;
+/* === Independent scroll for file list and content === */
+.layout{height:calc(100vh - 52px);}                /* fix total viewport height under topbar */
+.sidebar{display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-body{flex:1;overflow:auto;max-height:none;} /* file list scrolls independently */
+.content{overflow:auto;}                             /* content scroll independent */
+
+/* === Form width to half screen === */
+.content .controls{max-width:50vw;}
+@media (max-width: 960px){
+  .content .controls{max-width:100%;}
 }
+
+/* === Buttons align with form (left, same column) === */
+.buttons{justify-content:flex-start;margin-top:6px}
+
+
+/* === Fix: force sidebar to scroll independently === */
+.layout{height:calc(100vh - 52px);}
+.sidebar{overflow-y:auto; max-height:calc(100vh - 52px);} /* scroll this */
+.sidebar-body{max-height:none; overflow:visible;}        /* let parent handle scroll */
+
+
+/* === Uniform input widths & non-intrusive counters/icons === */
+.content .controls{max-width:50vw;}
+.controls .field .control{position:relative; display:block;} /* stop flex shrink */
+.controls .field .control input{display:block; width:100%; box-sizing:border-box;}
+/* Place count/warn/checkmark over the right edge so they don't change layout */
+#campaignIdCharCount, #subjectCharCount, #mismatchWarning,
+#campaignIdCheckmark, #subjectCheckmark, #linkCheckmark {
+  position:absolute; top:50%; transform:translateY(-50%);
+  right:36px; pointer-events:none; white-space:nowrap; margin:0;
+}
+#campaignIdCheckmark, #subjectCheckmark, #linkCheckmark { right:10px; } /* icons closest to right */
+#campaignIdCharCount, #subjectCharCount, #mismatchWarning { right:36px; opacity:.8; }
+
+/* Ensure three inputs have the same visual width */
+.field { width:100%; }
+
+
+/* === Place char counts & icons outside input field === */
+.controls .field .control{position:relative; display:block; padding-right:0;}
+.controls .field .control input{width:100%;}
+#campaignIdCharCount, #subjectCharCount {
+  position:static;
+  display:inline-block;
+  margin-left:8px;
+  font-size:12px;
+  opacity:0.8;
+}
+#campaignIdCheckmark, #subjectCheckmark {
+  position:static;
+  display:inline-block;
+  margin-left:4px;
+}
+
+
+/* === Absolute-aligned checkmarks (input 700px + fixed gap) === */
+.controls .field .control{
+  position: relative !important;
+  display: block !important;
+  padding-right: 46px; /* reserve space for icon */
+}
+.controls .field .control input{
+  display:block; width:700px !important; min-width:700px !important; max-width:700px !important;
+}
+.status{
+  position:absolute !important;
+  left: calc(700px + 14px);
+  top: 50%; transform: translateY(-50%);
+  width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+  margin:0 !important;
+}
+
+/* Hide any leftover counters & mismatch */
+#campaignIdCharCount, #subjectCharCount, #mismatchWarning{display:none !important}
+
+
+/* === Round campaign count indicator === */
+.topbar .right{display:flex;align-items:center;gap:10px}
+#campaignCountIndicator{
+  width:22px;height:22px;border-radius:999px;
+  display:inline-block;border:1px solid var(--border);
+  background:#ef4444; /* default red */
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+  color:transparent; overflow:hidden; text-indent:-9999px;
+}
+
+
+/* === Tree list: children go below (vertical), not side-by-side === */
+.sidebar li{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.sidebar li > ul{ flex:0 0 100%; padding-left:18px; margin-top:4px; }
