@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Absensi Harian v2.3B</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="absensi.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>🗓️ Absensi Harian</h1>
+    <div class="month-switcher">
+      <button id="prevMonthBtn" aria-label="Bulan sebelumnya">◀</button>
+      <div>
+        <span id="monthLabel"></span>
+        <span id="yearLabel"></span>
+      </div>
+      <button id="nextMonthBtn" aria-label="Bulan berikutnya">▶</button>
+      <button id="todayBtn" class="pill">Hari Ini</button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>Kalender</h2>
+      <div id="calendar" class="calendar"></div>
+      <div class="legend">
+        <span class="dot has-entry"></span> ada absen
+        <span class="dot today"></span> hari ini
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Isi Absen</h2>
+      <form id="absenForm" autocomplete="off">
+        <div class="row">
+          <label>Tanggal</label>
+          <input type="text" id="tanggalField" readonly />
+        </div><div class="row">
+          
+          
+      <div class="mode-radios custom">
+        <label class="radio">
+          <input type="radio" name="mode" id="modeWFO" value="WFO" checked>
+          <span>WFO</span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="mode" id="modeWFH" value="WFH">
+          <span>WFH</span>
+        </label>
+
+<label class="radio">
+  <input type="radio" name="mode" id="modeCuti" value="Cuti/Sakit">
+  <span>Cuti/Sakit</span>
+</label>
+      </div>
+<div class="row two">
+          <div>
+            <label>Mulai Kerja</label>
+            <input type="time" id="startTime" required />
+          </div>
+          <div>
+            <label>Selesai Kerja</label>
+            <input type="time" id="endTime" required />
+          </div>
+        </div>
+        
+        
+    
+        </div>
+        <div class="row">
+          <label>Catatan (opsional)</label>
+          <input type="text" id="notes" placeholder="Contoh: Meeting, lembur, dsb." />
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary">Simpan</button>
+          <button type="button" id="clearBtn">Hapus Isian</button>
+          <span id="lockBadge" class="lock muted"><i class="fa-solid fa-lock"></i> Terkunci</span>
+        </div>
+        <p id="formMsg" class="muted"></p>
+      </form>
+    </section>
+  </main>
+
+  <section class="tabs">
+    <button class="tab active" data-tab="rekap">Rekap Bulanan</button>
+  </section>
+
+  <section id="rekap" class="tab-content active">
+    <div class="card">
+      <div class="row two">
+        <div>
+          <label>Pilih Bulan</label>
+          <input type="month" id="monthPicker" />
+        </div>
+        <div class="right actions">
+          <button id="exportCsvBtn">Export CSV</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="rekapTable">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Hari</th>
+              <th>Mulai</th>
+              <th>Selesai</th>
+              <th>Durasi</th>
+              <th>Mode</th>
+              <th>Catatan</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="summary">
+        <div class="chip" id="totalHari">Total Hari: 0</div>
+        <div class="chip" id="totalWFO">WFO: 0</div>
+        <div class="chip" id="totalWFH">WFH: 0</div>
+        <div class="chip" id="totalJam">Total Jam: 0</div>
+        <div class="chip" id="avgJam">Rata-rata Jam/Hari: 0</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <small>Data tersimpan lokal di browser (localStorage). Zona waktu: Asia/Jakarta.</small>
+  </footer>
+
+  <script src="absensi.js"></script>
+</body>
+</html>
