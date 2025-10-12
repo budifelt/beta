@@ -149,3 +149,135 @@ button{background:var(--panel);border:1px solid var(--border);padding:10px 14px;
 .calendar .cell.weekend.mode-cuti {
   background: inherit;
 }
+
+/* --- Mobile enhancements (<=600px) appended --- */
+@media (max-width: 600px){
+  .grid{grid-template-columns:1fr;gap:12px;padding:12px}
+  .card{padding:12px;border-radius:14px}
+  input[type="text"],input[type="time"],input[type="month"],button{width:100%;padding:12px 14px;font-size:15px}
+  .actions{flex-direction:column;gap:8px}
+  .month-switcher{flex-wrap:wrap;justify-content:center}
+  .calendar{gap:6px}
+  .calendar .cell{min-height:64px;padding:8px}
+  .table-wrap{overflow-x:auto}
+}
+
+
+/* force month switcher in one line (no wrap) */
+.month-switcher { flex-wrap: nowrap !important; justify-content: center; gap: 8px; }
+@media (max-width:600px) {
+  .month-switcher { flex-wrap: nowrap !important; justify-content: center; gap: 6px; }
+}
+
+
+/* mobile: align month picker & Export CSV on one line and vertically centered */
+@media (max-width: 600px){
+  .row.two{ align-items:center; }
+  .row.two > div{ display:flex; align-items:center; }
+  #monthPicker{ height:42px; }
+  #exportCsvBtn{ height:42px; display:inline-flex; align-items:center; justify-content:center; }
+}
+
+
+/* improved mobile alignment for Rekap section */
+@media (max-width: 600px){
+  #rekap .row.two{
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  #rekap .row.two > div{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  #monthPicker, #exportCsvBtn{
+    flex:1;
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  #monthPicker{
+    margin-right:6px;
+  }
+  #rekap label{
+    flex-shrink:0;
+    margin-right:8px;
+    font-size:13px;
+  }
+}
+
+
+/* mobile: make 'Pilih Bulan' + month input + Export CSV in one perfect line */
+@media (max-width: 600px){
+  #rekap .row.two{
+    display:grid;
+    grid-template-columns: max-content 1fr max-content;
+    align-items:center;
+    gap:8px;
+  }
+  /* flatten nested divs so label, input, and button participate in the grid */
+  #rekap .row.two > div{ display: contents; }
+  #rekap label{ margin:0; }
+  #monthPicker, #exportCsvBtn{
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+}
+
+/* === Actions bar alignment (desktop & mobile) — added by ChatGPT 2025-10-12 === */
+.actions{
+  display:grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  align-items:center;
+  gap:10px;
+}
+.actions .primary,
+.actions #clearBtn{
+  min-width:120px;
+  height:44px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.actions #formDeleteBtn{
+  width:44px;
+  height:44px;
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+.actions #lockBadge.lock{
+  height:44px;
+  display:inline-flex;
+  align-items:center;
+}
+@media (max-width:600px){
+  .actions{
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 1fr;
+    gap:8px;
+  }
+  .actions .primary,
+  .actions #clearBtn{
+    width:100%;
+  }
+  .actions #formDeleteBtn{
+    width:100%;
+  }
+  .actions #lockBadge.lock{
+    grid-column: 1 / -1;
+    justify-content:center;
+  }
+}
