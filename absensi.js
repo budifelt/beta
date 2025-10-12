@@ -37,7 +37,7 @@
   // ===== Google Apps Script / Google Sheets Sync =====
   // Set your Web App URL here (Deploy > Test deployments / Manage deployments)
   // Example: const GAS_URL = 'https://script.google.com/macros/s/AKfycbx.../exec';
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyaG2eKC12Fc7a_t_1J9ACTgBWraf_L9ZU4o2mgGLEvwFmgxNWrfTsBsHiGl-dQpC8uCg/exec'; // TODO: paste your Web App URL (leave empty to disable remote sync)
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwN0eduVYeoVSJfwIO9ZLFQGY1aEDlvF1MGSY7DRURhgwi-JTTcf--991BtV9koej_zVw/exec'; // TODO: paste your Web App URL (leave empty to disable remote sync)
 
   function queueLoad(){ try{ return JSON.parse(localStorage.getItem('attendanceSyncQueue')||'[]'); }catch(_){ return []; } }
   function queueSave(arr){ localStorage.setItem('attendanceSyncQueue', JSON.stringify(arr)); }
