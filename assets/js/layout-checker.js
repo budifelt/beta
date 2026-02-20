@@ -833,8 +833,9 @@ const originalUrlInput = document.getElementById('originalUrlInput');
     // localStorage.removeItem('layoutCheckerURL');
   });
 
-  // State persistence - simple approach
+  // State persistence - DISABLED to prevent saving state
   function saveState() {
+    // Don't save state to localStorage
     // const state = {
     //   htmlContent: editor.getValue(),
     //   originalUrl: document.getElementById('originalUrlInput').value,
@@ -845,14 +846,6 @@ const originalUrlInput = document.getElementById('originalUrlInput');
     //   state.krhredValues[input.id] = input.value;
     // });
     // localStorage.setItem('layoutChecker_state', JSON.stringify(state));
-      originalUrl: document.getElementById('originalUrlInput').value,
-      krhredValues: {}
-    };
-    const krhredInputs = document.querySelectorAll('input[id^="krhred_unit_"]');
-    krhredInputs.forEach(input => {
-      state.krhredValues[input.id] = input.value;
-    });
-    localStorage.setItem('layoutChecker_state', JSON.stringify(state));
   }
 
   function loadState() {
