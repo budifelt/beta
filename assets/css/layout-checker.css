@@ -1,1 +1,336 @@
-*{box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f5f7fa;margin:0;padding:20px;color:#333}h1{font-weight:700;color:#2c3e50;margin-bottom:20px}label{display:block;margin-bottom:6px;font-weight:600;color:#34495e}input[type="text"],textarea{width:100%;padding:10px 12px;border:1.5px solid #d1d9e6;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;background:#fff;color:#2c3e50}input[type="text"]:focus,textarea:focus{border-color:#4a90e2;outline:none;box-shadow:0 0 6px rgb(74 144 226 / .4)}textarea{height:300px;resize:vertical;font-family:monospace}#krhredUnitsContainer{display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(5,auto);gap:10px 12px;margin:20px 0}#krhredUnitsContainer>div{display:flex;flex-direction:column}#krhredUnitsContainer input[type="text"]{padding:8px 10px;font-size:13px;border-radius:4px;border:1px solid #cbd6e2;transition:background-color 0.3s ease,border-color 0.3s ease}#krhredUnitsContainer input[type="text"]:focus{border-color:#2980b9;background-color:#eaf4fc}#krhredUnitsContainer input[type="text"].filled{background-color:#d4edda;border-color:#28a745}.button-group{display:flex;gap:12px;margin-bottom:20px}button{background-color:#4a90e2;color:#fff;border:none;padding:10px 18px;font-size:15px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background-color 0.3s ease}button:hover{background-color:#357abd}button:disabled{background-color:#a0b9db;cursor:not-allowed}#status{font-family:monospace;white-space:pre-wrap;background:#e9ecef;padding:12px;border-radius:6px;min-height:40px;color:#2c3e50}svg{width:18px;height:18px;fill:currentColor}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}.back-btn{position:fixed;top:auto;right:auto;background:#222;color:#fff;border:none;border-radius:50%;width:42px;height:42px;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgb(0 0 0 / .25);transition:background 0.2s ease,transform 0.2s ease;z-index:1000;bottom:16px;left:16px}.back-btn:hover{background:#444;transform:scale(1.08)}@supports (bottom:env(safe-area-inset-bottom)){.back-btn{bottom:max(16px, calc(env(safe-area-inset-bottom) + 8px));left:max(16px, calc(env(safe-area-inset-left) + 8px))}}
+/* ===== MERGED THEME (original theme.css) ===== */
+/* ===============================
+   THEME v2 — Stable gradient + consistent panels (refined)
+   =============================== */
+
+/* ---- Tokens ---- */
+:root{
+  --bg1:#f8fafc; --bg2:#f1f5f9;
+  --surface:#ffffff; --surface-elev:#f8fafc;
+  --text:#1e293b; --text-strong:#0f172a; --muted:#64748b;
+  --ring:#3b82f6; --glow1:#60a5fa; --glow2:#93c5fd;
+  --primary:#3b82f6; --primary-hover:#2563eb; --success:#10b981; --success-hover:#059669;
+  --warning:#f59e0b; --warning-hover:#d97706; --error:#ef4444; --error-hover:#dc2626;
+  --info:#6366f1; --info-hover:#4f46e5;
+  --radius:10px; --space:clamp(14px,2vw,24px); --container:1100px;
+  --shadow:0 4px 12px rgba(0,0,0,.10);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.15);
+  --overlay-bg: rgba(255,255,255,.95);
+}
+
+/* ---- Base ---- */
+html,body{height:100%}
+body{
+  color:var(--text) !important;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, Arial, sans-serif !important;
+
+  /* FIX: satu layer gradient yang stabil */
+  background: linear-gradient(135deg, var(--bg1), var(--bg2)) !important;
+  background-attachment: fixed !important;
+}
+
+/* Opsional: ubah ke latar solid di halaman yang butuh */
+body.theme-solid{
+  background: var(--surface) !important;
+}
+
+/* ---- Common containers / panels ----
+   IMPORTANT: HILANGKAN overflow:hidden global agar tidak mematikan scroll.
+*/
+.container, #mainContent, .calendar, .counter-container, .instructions, .history-container,
+#sidebar, #fileList, #databaseContent, #resultsContainer, #krhredResults, #krhredDetails,
+#contentContainer, #editor, textarea, input[type="text"], input[type="search"], select, .virtual-scroll-container {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  position: relative;
+  /* overflow: hidden;  <-- DIHAPUS agar elemen yang perlu scroll tidak terkunci */
+}
+
+/* Utility bila butuh clipping khusus */
+.clip { overflow: hidden !important; }
+
+/* FIX: hilangkan blend-screen yang bikin tint berubah; pakai normal + opacity kecil */
+.container::after, .calendar::after, .counter-container::after, #mainContent::after,
+.instructions::after, .history-container::after{
+  content:""; position:absolute; inset:-2px; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(135deg,var(--glow1),var(--glow2));
+  opacity:.10;                
+  mix-blend-mode: normal;     
+}
+
+/* Matikan glow di elemen tertentu bila perlu */
+.no-glow::after{ display:none !important; }
+
+/* ---- Headings & text ---- */
+h1,h2,h3,h4,h5 { color: var(--text-strong) !important; }
+p, label, .sync-status, .last-updated, .text-slate-400 { color: var(--muted) !important; }
+
+/* ---- Buttons ---- */
+button, .bookmarklet {
+  background: var(--primary) !important;
+  color: white !important;
+  border:1.5px solid rgba(255,255,255,.08) !important;
+  border-radius: var(--radius) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
+}
+button:hover, .bookmarklet:hover {
+  transform: translateY(-2px);
+  background: var(--primary-hover) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+/* ---- Links ---- */
+a { color: #9bb1ff !important; }
+
+/* ---- Inputs & textareas ---- */
+input, textarea, select {
+  border-radius: var(--radius) !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border:1.5px solid #e2e8f0 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--primary) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+input::placeholder, textarea::placeholder { color: var(--muted) !important; }
+
+/* ---- Tables ---- */
+table { color: var(--text) !important; }
+th, td { border-color: rgba(255,255,255,.10) !important; }
+thead { background: #0f172a !important; }
+
+/* ---- Specific tweaks you already had (deduplicated) ---- */
+#databaseContent { background:#f8fafc !important; }
+#krhredResults, #krhredDetails { background:#ffffff !important; }
+#sidebar, #fileList { box-shadow: none !important; }
+::selection { background: rgba(124,137,255,.35); color:#fff; }
+
+/* Back button safe area */
+.back-btn{ position:fixed; bottom:16px; left:16px; top:auto; right:auto; z-index:1100; }
+@supports (bottom: env(safe-area-inset-bottom)){
+  .back-btn{
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+    left: max(16px, calc(env(safe-area-inset-left) + 8px));
+  }
+}
+
+/* ===============================
+   Centered Loading Overlay
+   (matches structure injected by config.js)
+   =============================== */
+#loadingOverlay{
+  position: fixed;
+  inset: 0;
+  display: none;               /* JS: showOverlay() => display:flex */
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(2px);
+  z-index: 2000;               /* di atas sidebar/main */
+}
+#loadingOverlay .panel{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface-elev);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: var(--shadow-lg);
+  font-weight: 600;
+}
+#loadingOverlay .panel i{ font-size: 18px; }
+
+
+/* ===== COMPONENTS (original layout-checker.css) ===== */
+
+/* ---- Extracted styles from inline <style> blocks ---- */
+/* Reset and base */
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #ffffff;
+    margin: 0;
+    padding: 20px;
+    color: #1e293b;
+  }
+  h1 {
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 20px;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #475569;
+  }
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--surface);
+    color: var(--text);
+  }
+  input[type="text"]:focus, textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+    background: var(--surface-elev);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  textarea {
+    height: 300px;
+    resize: vertical;
+    font-family: monospace;
+  }
+  #krhredUnitsContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-rows: repeat(auto-fit, minmax(50px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+  }
+  #krhredUnitsContainer > div {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #krhredUnitsContainer label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  #krhredUnitsContainer .input-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, auto);
+    gap: 8px;
+  }
+  #krhredUnitsContainer input[type="text"] {
+    padding: 10px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--surface);
+    color: var(--text);
+    text-align: center;
+    font-weight: 500;
+  }
+  #krhredUnitsContainer input[type="text"]:focus {
+    border-color: var(--primary);
+    background-color: var(--surface-elev);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  #krhredUnitsContainer input[type="text"]:not(:placeholder-shown):valid {
+    background-color: #f0fdf4;
+    border-color: var(--success);
+  }
+  #krhredUnitsContainer input[type="text"]:not(:placeholder-shown):invalid {
+    background-color: #fef2f2;
+    border-color: var(--error);
+  }
+  .button-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  button {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
+  }
+  button:hover { 
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+  button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  }
+  button:disabled { 
+    background-color: #94a3b8; 
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  #status {
+    font-family: monospace;
+    white-space: pre-wrap;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 6px;
+    min-height: 40px;
+    color: #1e293b;
+  }
+  /* Icon styles */
+  svg { width: 18px; height: 18px; fill: currentColor; }
+  /* Loading animation */
+  @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+
+.back-btn {
+  position: fixed;
+  top: auto;
+  right: auto;
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+  bottom: 16px;
+  left: 16px;
+}
+.back-btn:hover {
+  background: #444;
+  transform: scale(1.08);
+}
+
+@supports (bottom: env(safe-area-inset-bottom)){
+  .back-btn{
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+    left: max(16px, calc(env(safe-area-inset-left) + 8px));
+  }
+}
